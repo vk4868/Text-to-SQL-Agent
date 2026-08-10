@@ -1,0 +1,27 @@
+# Python-generated files
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+wheels/
+.pytest_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+
+# Secrets and credentials — never commit these
+.env
+credentials/
+client_secret_*.json
+service-account*.json
+application_default_credentials.json
+
+# Runtime output
+logs/
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
