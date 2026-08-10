@@ -1,0 +1,41 @@
+product_id,product_name,category,subcategory,brand,unit_cost,list_price,launch_date
+P001,Premium Shampoo,Personal Care,Hair Care,Northstar,4.20,8.99,2023-10-17
+P002,Daily Conditioner,Personal Care,Hair Care,Northstar,3.95,8.49,2022-04-25
+P003,Hydrating Body Wash,Personal Care,Bath & Body,PureLeaf,3.60,7.99,2022-01-26
+P004,Fresh Mint Toothpaste,Personal Care,Oral Care,BrightSmile,1.80,4.49,2024-01-30
+P005,Gentle Face Cleanser,Personal Care,Skin Care,PureLeaf,5.10,11.99,2022-10-09
+P006,Repair Hand Cream,Personal Care,Skin Care,PureLeaf,2.75,6.49,2022-09-08
+P007,Active Deodorant,Personal Care,Personal Hygiene,Northstar,2.20,5.49,2022-08-17
+P008,SPF 50 Sunscreen,Personal Care,Skin Care,SunGuard,6.40,14.99,2022-05-23
+P009,Classic Notebook,Stationery,Paper Products,WriteWell,1.15,3.49,2024-01-25
+P010,Executive Notebook,Stationery,Paper Products,WriteWell,2.90,7.99,2022-04-15
+P011,Ballpoint Pen Pack,Stationery,Writing Instruments,WriteWell,1.30,4.29,2023-11-24
+P012,Permanent Marker Set,Stationery,Writing Instruments,ColorGrid,2.60,6.99,2024-01-29
+P013,A4 Printer Paper,Stationery,Paper Products,OfficeCore,4.80,10.99,2023-07-13
+P014,Sticky Notes Pack,Stationery,Desk Supplies,OfficeCore,1.40,3.99,2022-03-31
+P015,Weekly Desk Planner,Stationery,Planning,OfficeCore,3.20,8.49,2023-08-28
+P016,Laundry Detergent,Household,Laundry,HomeShield,5.90,12.99,2023-03-09
+P017,Dishwashing Liquid,Household,Kitchen Cleaning,HomeShield,1.95,4.99,2022-02-02
+P018,Paper Towels,Household,Paper Goods,DailyHome,3.70,8.99,2022-01-31
+P019,Multi-Surface Cleaner,Household,Home Cleaning,HomeShield,2.45,5.99,2022-04-06
+P020,Trash Bag Roll,Household,Waste Management,DailyHome,3.10,7.49,2022-08-12
+P021,Kitchen Sponge Pack,Household,Kitchen Cleaning,DailyHome,1.25,3.49,2022-08-27
+P022,Air Freshener,Household,Home Fragrance,FreshNest,2.15,5.29,2023-06-02
+P023,Orange Juice,Beverages,Juice,MorningVale,2.20,4.99,2023-09-09
+P024,Arabica Coffee Beans,Beverages,Coffee,RoastHouse,7.80,16.99,2022-01-28
+P025,Green Tea Bags,Beverages,Tea,Leaf & Field,2.65,6.49,2023-07-29
+P026,Mineral Water Pack,Beverages,Water,ClearSpring,3.10,7.49,2022-07-23
+P027,Energy Drink Pack,Beverages,Energy Drinks,PulseUp,5.40,12.99,2024-01-04
+P028,Unsweetened Almond Milk,Beverages,Plant-Based Drinks,MorningVale,1.95,4.49,2023-10-28
+P029,Sparkling Water Pack,Beverages,Water,ClearSpring,3.75,8.99,2023-12-20
+P030,Gala Apples,Fruits,Fresh Fruit,FreshHarvest,1.25,2.99,2023-07-13
+P031,Bananas,Fruits,Fresh Fruit,FreshHarvest,0.70,1.69,2023-03-06
+P032,Navel Oranges,Fruits,Fresh Fruit,FreshHarvest,1.10,2.69,2022-08-14
+P033,Seedless Grapes,Fruits,Fresh Fruit,OrchardLane,2.10,4.99,2023-04-05
+P034,Strawberries,Fruits,Berries,OrchardLane,2.35,5.49,2023-08-27
+P035,Wireless Mouse,Electronics,Computer Accessories,NexaTech,9.50,24.99,2022-10-12
+P036,USB-C Cable,Electronics,Cables,NexaTech,3.20,9.99,2024-04-08
+P037,Bluetooth Speaker,Electronics,Audio,SoundArc,18.50,44.99,2024-06-09
+P038,Portable Power Bank,Electronics,Power Accessories,NexaTech,12.20,29.99,2022-01-07
+P039,Compact Keyboard,Electronics,Computer Accessories,NexaTech,16.80,39.99,2024-02-17
+P040,Wi-Fi Smart Plug,Electronics,Smart Home,HomeLink,8.10,19.99,2024-04-05
