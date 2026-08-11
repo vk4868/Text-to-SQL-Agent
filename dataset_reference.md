@@ -70,11 +70,11 @@ ORDER BY u.state, order_count DESC;
 
 ## Connecting the agent (as evaluated at the time)
 
-The Google Cloud BigQuery connector was authorized and working (billing project `sql-bigquery-502206`). It exposes:
+The Google Cloud BigQuery connector was authorized and working (billing project `your-project-id`). It exposes:
 
 - `list_dataset_ids`, `get_dataset_info`, `list_table_ids`, `get_table_info` — schema discovery (the "get the schema" step of your agent)
 - `execute_sql` / `execute_sql_readonly` — run the generated query and return results (prefer the readonly variant for a query agent — it blocks INSERT/UPDATE/DELETE)
 
-No project setup or data loading needed — point queries at `bigquery-public-data.thelook_ecommerce.<table>`, billed against `sql-bigquery-502206`. Row counts (100K users, 125K orders, 182K order items, 29K products) are large enough for a realistic business-scenario test, not a toy dataset.
+No project setup or data loading needed — point queries at `bigquery-public-data.thelook_ecommerce.<table>`, billed against `your-project-id`. Row counts (100K users, 125K orders, 182K order items, 29K products) are large enough for a realistic business-scenario test, not a toy dataset.
 
 **Verified at the time of evaluation:** ran the category-revenue query above live — top category is Outerwear & Coats at ~$1.35M revenue / 9,128 items sold.

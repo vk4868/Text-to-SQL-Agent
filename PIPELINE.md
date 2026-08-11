@@ -91,7 +91,7 @@ Flow:
 
 Resulting document (shape):
 ```
-DATASET: sql-bigquery-502206.business_insights
+DATASET: your-project-id.business_insights
 
 TABLE: fact_sales
 ROW COUNT: 1260
@@ -313,7 +313,7 @@ schema_document = "DATASET: ...\nTABLE: fact_sales\n..."   [B] live schema fetch
 prompt = "You are an expert BigQuery SQL analyst... {question} {schema}"   [C]
 LLM →  SELECT FORMAT_DATE('%Y-%m', sale_date) AS month,
               SUM(net_revenue) AS total_net_sales
-       FROM `sql-bigquery-502206.business_insights.fact_sales`
+       FROM `your-project-id.business_insights.fact_sales`
        WHERE sale_date BETWEEN '2025-01-01' AND '2025-12-31'
        GROUP BY month ORDER BY month
 ─ execute() ─                                        [D]
