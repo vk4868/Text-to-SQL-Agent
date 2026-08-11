@@ -57,7 +57,7 @@ def test_defaults_apply_when_no_env_file_exists(
 
     project_id, model, repair_attempts = result.stdout.split()
 
-    assert project_id == "sql-bigquery-502206"
+    assert project_id == "your-project-id"
     assert model == "gemma3:4b"
     assert repair_attempts == "2"
 
