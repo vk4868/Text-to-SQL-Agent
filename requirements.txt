@@ -1,0 +1,6 @@
+langgraph
+ollama
+langchain
+google-cloud-bigquery
+python-dotenv
+sqlglot

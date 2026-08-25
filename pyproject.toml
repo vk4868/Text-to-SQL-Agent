@@ -1,0 +1,29 @@
+[project]
+name = "sql-bigquery-agent"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "google-cloud-bigquery>=3.42.2",
+    "langchain>=1.3.13",
+    "langgraph>=1.2.9",
+    "ollama>=0.6.2",
+    "python-dotenv>=1.2.2",
+    "sqlglot>=30.12.0",
+]
+
+[tool.pyrefly]
+search-path = ["."]
+disable-search-path-heuristics = true
+
+# LangGraph bounds StateGraph's `StateT` to structural protocols requiring
+# `__required_keys__` / `__optional_keys__`, since a TypeVar cannot be bound to
+# TypedDict directly. Pyrefly does not match TypedDict classes against those
+# protocols, so it rejects every TypedDict state schema. Scoped to the graph
+# package so the check stays active for the rest of the project.
+[[tool.pyrefly.sub-config]]
+matches = "src/graph/**"
+
+[tool.pyrefly.sub-config.errors]
+bad-specialization = false

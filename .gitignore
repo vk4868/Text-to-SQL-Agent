@@ -1,0 +1,27 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Google OAuth client secret - do not commit
+client_secret_*.json
+
+.venv/
+__pycache__/
+*.pyc
+.env
+credentials/
+*.json
+logs/
+# macOS
+.DS_Store
+
+# Tooling caches
+.ruff_cache/
+.pytest_cache/
