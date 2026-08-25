@@ -4,7 +4,9 @@ from src.llm.ollama_client import (
 
 from src.sql_generator import SQLGenerator
 
-from src.tools import get_schema
+from src.tools import get_default_tools
+
+get_schema, _ = get_default_tools()
 
 def main() -> None:
     schema_document = get_schema.invoke({})

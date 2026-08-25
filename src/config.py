@@ -1,5 +1,12 @@
 import os
 
+from dotenv import load_dotenv
+
+# Must run before any os.getenv call below: every setting in this module is a
+# module-level constant resolved at import time, so loading .env later has no
+# effect. Existing environment variables win over .env values.
+load_dotenv()
+
 PROJECT_ID= os.getenv(
     "GCP_PROJECT_ID",
     "sql-bigquery-502206"
@@ -87,5 +94,14 @@ MAX_SQL_REPAIR_ATTEMPTS = int(
     os.getenv(
         "MAX_SQL_REPAIR_ATTEMPTS",
         "2"
+    )
+)
+
+# How long a fetched schema document stays usable. Set to 0 to disable
+# caching and walk the dataset on every request.
+SCHEMA_CACHE_TTL_SECONDS = float(
+    os.getenv(
+        "SCHEMA_CACHE_TTL_SECONDS",
+        "300",
     )
 )

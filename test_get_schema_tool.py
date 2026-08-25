@@ -1,4 +1,6 @@
-from src.tools import get_schema
+from src.tools import get_default_tools
+
+get_schema, _ = get_default_tools()
 
 def main() -> None:
     print(f"Tool name = {get_schema.name}")

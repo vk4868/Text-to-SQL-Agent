@@ -11,12 +11,8 @@ from src.observability import (
 
 from google.api_core.exceptions import GoogleAPIError
 
-from src.bigquery_service import BigQueryService
-from src.config import (
-    MAX_QUERY_BYTES,
-    MAX_RESULT_ROWS,
-    QUERY_TIMEOUT_SECONDS,
-)
+from src import config
+from src.interfaces import BigQueryReader
 from src.exceptions import QueryExecutionTimeoutError
 from src.sql_validator import (
     enforce_result_limit,
@@ -31,12 +27,30 @@ class SQLExecutionPipeline:
     def __init__(
         self,
         *,
-        bigquery_service: BigQueryService,
-        max_query_bytes: int = MAX_QUERY_BYTES,
-        max_result_rows: int = MAX_RESULT_ROWS,
-        query_timeout_seconds: int = QUERY_TIMEOUT_SECONDS,
+        bigquery_service: BigQueryReader,
+        max_query_bytes: int | None = None,
+        max_result_rows: int | None = None,
+        query_timeout_seconds: int | None = None,
         logger: logging.Logger | None = None,
     ) -> None:
+        # Resolved at call time, not captured as import-time defaults, so the
+        # caps stay overridable by configuration and by tests.
+        max_query_bytes = (
+            config.MAX_QUERY_BYTES
+            if max_query_bytes is None
+            else max_query_bytes
+        )
+        max_result_rows = (
+            config.MAX_RESULT_ROWS
+            if max_result_rows is None
+            else max_result_rows
+        )
+        query_timeout_seconds = (
+            config.QUERY_TIMEOUT_SECONDS
+            if query_timeout_seconds is None
+            else query_timeout_seconds
+        )
+
         if max_query_bytes <= 0:
             raise ValueError(
                 "max_query_bytes must be greater than zero."

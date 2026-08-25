@@ -1,5 +1,7 @@
 from pprint import pprint
-from src.tools import run_sql
+from src.tools import get_default_tools
+
+_, run_sql = get_default_tools()
 
 def main() -> None:
     test_cases = [

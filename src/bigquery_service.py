@@ -1,28 +1,32 @@
-from dateutil import relativedelta
+# Annotations are evaluated lazily so that `bigquery.Client | None` in the
+# constructor signature does not need bigquery.Client to be a real class at
+# import time.
+from __future__ import annotations
+
 from google.cloud import bigquery
 from concurrent.futures import TimeoutError as FuturesTimeoutError
 from src.exceptions import QueryExecutionTimeoutError
 
-from src.config import (
-    BIGQUERY_LOCATION,
-    DATASET_ID,
-    PROJECT_ID
-)
+from src import config
 
 class BigQueryService:
     """to provide reusable access to the project's bigquery dataset"""
 
     def __init__(
         self,
-        project_id: str = PROJECT_ID,
-        dataset_id: str = DATASET_ID,
-        location: str = BIGQUERY_LOCATION,
+        project_id: str | None = None,
+        dataset_id: str | None = None,
+        location: str | None = None,
+        client: bigquery.Client | None = None,
     ) -> None:
-        self.project_id = project_id
-        self.dataset_id = dataset_id
-        self.location = location
+        # Resolved at call time rather than captured as import-time defaults,
+        # so tests and callers can redirect the target project.
+        self.project_id = project_id or config.PROJECT_ID
+        self.dataset_id = dataset_id or config.DATASET_ID
+        self.location = location or config.BIGQUERY_LOCATION
 
-        self.client = bigquery.Client(
+        # Injection seam: pass a fake client to exercise this class offline.
+        self.client = client or bigquery.Client(
             project=self.project_id,
             location=self.location
         )
@@ -40,12 +44,12 @@ class BigQueryService:
 
     def get_table_schema(self,table_name:str) -> list[dict[str, str | None]]:
         """Return column metadata for one table in the configured dataset"""
-        availaible_tables = set(self.list_table_names())
+        available_tables = set(self.list_table_names())
 
-        if table_name not in availaible_tables:
+        if table_name not in available_tables:
             raise ValueError(
-                f"Table '{table_name}' does not exist in"
-                f"Dataset '{self.dataset_path}'"
+                f"Table '{table_name}' does not exist in "
+                f"dataset '{self.dataset_path}'."
             )
         table_path=f"{self.dataset_path}.{table_name}"
         table = self.client.get_table(table_path)
@@ -64,12 +68,12 @@ class BigQueryService:
     ) -> dict[str, str | int | bool | list[str] | None]:
         """Returns table level metadata for one bigquery table"""
 
-        availaible_tables = set(self.list_table_names())
+        available_tables = set(self.list_table_names())
 
-        if table_name not in availaible_tables:
+        if table_name not in available_tables:
             raise ValueError(
-                f"Table '{table_name}' does not exist in"
-                f"dataset '{self.dataset_path}'"
+                f"Table '{table_name}' does not exist in "
+                f"dataset '{self.dataset_path}'."
             )
 
         table_path = f"{self.dataset_path}.{table_name}"

@@ -1,4 +1,3 @@
-from sqlglot import pretty
 from dataclasses import dataclass
 
 from sqlglot import exp, parse, parse_one
@@ -58,8 +57,8 @@ def validate_read_only_sql(sql:str) -> SQLValidationResult:
         return SQLValidationResult(
             is_valid=False,
             message=(
-                "Only read-only query statements are allowed"
-                f"Received: {type(statement).__name__}"
+                "Only read-only query statements are allowed. "
+                f"Received: {type(statement).__name__}."
             ),
         )
     normalized_sql = statement.sql(

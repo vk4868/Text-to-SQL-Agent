@@ -13,6 +13,17 @@ dependencies = [
     "sqlglot>=30.12.0",
 ]
 
+# testpaths is load-bearing: the ~35 legacy smoke scripts at the repo root are
+# named test_*.py but are print-only scripts, and several would error during
+# collection. Only tests/ is a real suite.
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q -m 'not live_bq and not live_llm'"
+markers = [
+    "live_bq: requires live BigQuery credentials",
+    "live_llm: requires a running Ollama server",
+]
+
 [tool.pyrefly]
 search-path = ["."]
 disable-search-path-heuristics = true
@@ -27,3 +38,9 @@ matches = "src/graph/**"
 
 [tool.pyrefly.sub-config.errors]
 bad-specialization = false
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+]

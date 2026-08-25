@@ -1,4 +1,3 @@
-from google.cloud.bigquery._job_helpers import job_config_with_defaults
 class QueryExecutionTimeoutError(Exception):
     """Raised when a bigquery job exceeds the allowed execution time"""
 
@@ -14,10 +13,9 @@ class QueryExecutionTimeoutError(Exception):
         self.cancel_requested = cancel_requested
 
         message = (
-            f"Bigquery job '{job_id}' exceeded the"
-            f"{timeout_seconds}-second timeout."
-            f"Cancellation requested: {cancel_requested}"
-            
+            f"BigQuery job '{job_id}' exceeded the "
+            f"{timeout_seconds}-second timeout. "
+            f"Cancellation requested: {cancel_requested}."
         )
         super().__init__(message)
 
