@@ -1,4 +1,30 @@
-from typing import Protocol
+from typing import Any, Protocol
+
+
+class BigQueryClientLike(Protocol):
+    """The narrow slice of google.cloud.bigquery.Client this project uses.
+
+    Declaring it explicitly documents the real coupling to the client library
+    and lets a fake client be injected without pretending to be the whole
+    Client class.
+    """
+
+    def list_tables(self, dataset_path: str) -> Any:
+        """List the tables in a dataset."""
+        ...
+
+    def get_table(self, table_path: str) -> Any:
+        """Fetch one table's metadata and schema."""
+        ...
+
+    def query(
+        self,
+        sql: str,
+        location: str | None = None,
+        job_config: Any = None,
+    ) -> Any:
+        """Start a query job."""
+        ...
 
 
 class BigQueryReader(Protocol):

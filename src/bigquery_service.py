@@ -8,6 +8,7 @@ from concurrent.futures import TimeoutError as FuturesTimeoutError
 from src.exceptions import QueryExecutionTimeoutError
 
 from src import config
+from src.interfaces import BigQueryClientLike
 
 class BigQueryService:
     """to provide reusable access to the project's bigquery dataset"""
@@ -17,7 +18,7 @@ class BigQueryService:
         project_id: str | None = None,
         dataset_id: str | None = None,
         location: str | None = None,
-        client: bigquery.Client | None = None,
+        client: BigQueryClientLike | None = None,
     ) -> None:
         # Resolved at call time rather than captured as import-time defaults,
         # so tests and callers can redirect the target project.
