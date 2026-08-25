@@ -105,7 +105,9 @@ Every query — model-written or hand-passed — goes through `SQLExecutionPipel
 
 Stages 5 and 6 double up (estimate *and* a hard billing cap), as do 3 and 6 (injected `LIMIT` *and* a client-side cap). If the estimate is wrong, BigQuery aborts rather than over-bill.
 
-**19 adversarial queries are pinned as a regression suite** — DML, DDL, stacked statements, foreign projects, unqualified names, a foreign table hidden in a subquery, a CTE shadowing an allowed table, a parameterised `LIMIT`. All 19 are refused, and each case also asserts **nothing reached BigQuery**: stages 1–3 are pure parsing.
+**19 adversarial queries are pinned as a regression suite** — DML, DDL, stacked statements, foreign projects, unqualified names, a foreign table hidden in a subquery, a CTE shadowing an allowed table, a parameterised `LIMIT`. All 19 are refused **before a byte of table data is scanned**: no dry run, no execution, nothing billed.
+
+To be precise about what does happen — stage 1 is pure parsing and touches nothing; stage 2 makes one `list_tables` **catalog** call to build the allowlist, which reads metadata rather than table data and is not billed. Every case asserts that neither the dry run nor execution was reached.
 
 ```
 Guardrails: 19/19 adversarial queries refused
@@ -128,14 +130,17 @@ Only the claim-bearing sections are checked. `LIMITATIONS` and `SUGGESTED FOLLOW
 
 What it caught in live runs, each verified by hand against BigQuery:
 
+
 | Model claimed | Actual | Error |
 |---|---|---|
 | Q4 total $8,637.64 | $7,637.64 | **$1,000.00** |
 | Year total $24,790.65 | $24,800.65 | $10.00 |
 | Top-3 units 2,209 | 2,199 | 10 |
 | Total units 2,890 | 3,300 | 410 |
-| Online share "≈48%" | 28.4% | 19.6 pts |
+| Online "≈48% of" Click-and-Collect | ratio is 223%, inverse 45% | matches neither |
 | Northeast − West 169.83 | 168.83 | $1.00 |
+
+The last row is a different kind of failure: the model wrote a comparative sentence whose number matches no ratio in the data. The guard cannot tell you *which* claim is wrong — only that the figure is not derivable.
 
 The reader sees this directly:
 
@@ -198,13 +203,13 @@ uv run python scripts/report_runs.py
 
 ```
 TIME BY NODE (s, mean)
-  analyze_result       15.7   n=9      ← 68% of a 23.1s run
-  generate_sql          3.6
-  execute_sql           2.3
-  get_schema            1.5
+  analyze_result       15.5   n=71
+  generate_sql          3.4   n=71
+  execute_sql           1.9   n=71
+  get_schema            1.0   n=71
 ```
 
-Writing the analysis, not the SQL work, dominates latency. If this needed to be faster, that is the only lever that matters.
+Writing the analysis is **~71% of a 21.8s mean run** — not the SQL work. If this needed to be faster, that is the only lever that matters. (These figures move as runs accumulate; re-run the script rather than trusting the paste.)
 
 ---
 
@@ -214,7 +219,7 @@ Stated plainly, because a portfolio project that only lists strengths is not wor
 
 **The grounding guard checks values, not attributions.** It can prove that 87.3% exists somewhere in the result; it cannot prove the model attached it to the right row. "Online is over 80% of revenue" passes when Online is 28% but In-Store plus Online is 87% — the figure is real, the sentence is wrong. Catching that requires parsing the claim, not the number.
 
-**Its strength depends on the data's precision.** On high-precision decimal currency an adversarial audit measured roughly **0.1–0.3%** false acceptance of plausible fabrications. On integer-valued results — counts, quantities — it rises to about **80%**, because so many small integers are legitimately derivable. The check is strong on money and weak on counts.
+**It is blind below `SMALL_INTEGER_CEILING`.** Bare whole numbers of 12 or less are skipped as structural — "three points stand out", "Q4", "the top 5" — so a fabricated *bare* small integer passes unchecked. A figure carrying a unit is always checked, so "8%" and "$8" are not exempt, but "we lost 7 accounts" is. Sampling against this dataset's real result shapes put false acceptance near 0% for decimal currency and around 1% for the count magnitudes it actually produces; the ceiling is the hole, not integers in general.
 
 **Ratios and subset means are not enumerated**, so a model computing "4.5 times greater" is reported. Over-reporting rather than silence is the deliberate bias, but it is still noise.
 
@@ -224,7 +229,7 @@ Stated plainly, because a portfolio project that only lists strengths is not wor
 
 **Schema retrieval does not scale as designed.** The entire schema is dumped into every prompt. That is right for 3 tables and wrong for 10,000 — at that size it becomes a retrieval problem over table cards.
 
-**Analysis latency dominates** at ~68% of wall-clock, and nothing is streamed, so the user waits ~21s for a complete answer.
+**Analysis latency dominates** at ~71% of wall-clock, and nothing is streamed, so the user waits ~21s for a complete answer.
 
 **A local 9.6 GB model is the weakest link.** The arithmetic errors above are a property of the model, not the pipeline. A larger model would likely lift `analysis_grounding` substantially without a single change to this code — which is precisely why the checking layer exists.
 
@@ -261,7 +266,7 @@ Everything is configurable via `.env` or the environment — see `src/config.py`
 ### Tests
 
 ```bash
-uv run pytest tests/ -q          # 362 tests, hermetic
+uv run pytest tests/ -q          # 400+ tests, hermetic
 ```
 
 The suite needs **no credentials and no model** — autouse fixtures make constructing a live client raise, and redirect logs to a temp directory. It passes with `GOOGLE_APPLICATION_CREDENTIALS` unset and Ollama pointed at a dead port.
@@ -304,7 +309,7 @@ src/
   llm/                base protocol, Ollama client, scripted fake
   prompts/            generation (14 rules), repair, analysis
 evaluation/           golden + adversarial cases, scorers, harness, report
-tests/                362 hermetic tests
+tests/                400+ hermetic tests
 scripts/smoke/        live demo scripts
 Datasets/             the synthetic dataset and its dictionary
 ```

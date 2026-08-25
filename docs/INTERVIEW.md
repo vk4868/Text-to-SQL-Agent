@@ -100,7 +100,7 @@ The lesson: a metric you haven't tried to break is a metric you don't understand
 
 ### "How do you know your tests aren't vacuous?"
 
-Mutation testing. Independent audits broke the source deliberately — removed the client injection seam, dropped subtotal grounding, made the zero-row path call the LLM, made the CLI return 0 on failure — and checked the suite fails. It caught 10/10 of one round and 11/13 of another. The misses were real coverage gaps and I closed them.
+Mutation testing. Independent audits broke the source deliberately — removed the client injection seam, dropped subtotal grounding, made the zero-row path call the LLM, made the CLI return 0 on failure — and checked the suite fails. Most rounds caught everything; where a mutation survived, that was a real coverage gap and I wrote the missing test. Several tests in the suite exist only because a deliberate break slipped through first.
 
 A green suite that cannot fail proves nothing.
 
@@ -114,7 +114,7 @@ Several things, and I'd rather name them than have you find them.
 
 It checks **values, not attributions**. It can prove 87.3% exists in the result; it can't prove the model attached it to the right row. "Online is over 80%" passes when Online is 28% but In-Store plus Online is 87%. Catching that needs claim parsing.
 
-Its strength depends on **data precision**. An audit measured ~0.1–0.3% false acceptance on decimal currency but ~80% on integer counts, because so many small integers are legitimately derivable. Strong on money, weak on counts.
+Its strength depends on **data precision**. Sampling against this dataset's real result shapes puts false acceptance near 0% on decimal currency and around 1% on the count magnitudes it produces. The real hole is the small-integer ceiling: bare whole numbers of 12 or less are skipped as structural, so a fabricated "we lost 7 accounts" passes. Units are always checked, so "7%" and "$7" are not exempt.
 
 **Ratios and subset means aren't enumerated**, so a model computing "4.5 times greater" gets reported. Over-reporting is the deliberate bias, but it's still noise.
 
@@ -126,7 +126,7 @@ Schema retrieval, first and hardest. The whole schema goes into every prompt —
 
 The guardrails become *more* important there, not less: with 10,000 tables an allowlist stops being something a human can eyeball, so it has to be derived from a permissions model.
 
-Latency too. Analysis is ~68% of a 21s run and nothing streams, so the user waits for the whole thing.
+Latency too. Analysis is ~71% of a ~22s run and nothing streams, so the user waits for the whole thing.
 
 ### "What would you do next?"
 

@@ -114,4 +114,4 @@ It checks values, not attributions — see the README's limitations section befo
 
 ### Current state
 
-Phases 0 and 7–10 complete, each independently verified by an audit that mutation-tested the suite. Evaluation: 11/15 (73%), 19/19 adversarial queries refused, 362 hermetic tests.
+Phases 0 and 7–10 complete, each independently verified by an audit that mutation-tested the suite. Evaluation: 11/15 (73%), 19/19 adversarial queries refused, 400+ hermetic tests.

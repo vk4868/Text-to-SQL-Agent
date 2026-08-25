@@ -15,9 +15,10 @@ dependencies = [
     "streamlit>=1.62.0",
 ]
 
-# testpaths is load-bearing: the ~35 legacy smoke scripts at the repo root are
-# named test_*.py but are print-only scripts, and several would error during
-# collection. Only tests/ is a real suite.
+# The smoke scripts now live in scripts/smoke/ as smoke_*.py, so pytest would
+# not collect them by name anyway. testpaths stays as a second guard: those
+# scripts make live BigQuery calls at import, and a future file named test_*
+# outside tests/ must never be picked up.
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q -m 'not live_bq and not live_llm'"

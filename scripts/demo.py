@@ -59,9 +59,9 @@ def show_guardrails() -> int:
     print()
     print(
         f"  {summary['blocked']}/{summary['total']} adversarial queries "
-        "refused, every one during parsing —"
+        "refused before a byte of table data"
     )
-    print("  nothing reached BigQuery.")
+    print("  was scanned — no dry run, no execution, nothing billed.")
 
     return 0 if summary["blocked"] == summary["total"] else 1
 

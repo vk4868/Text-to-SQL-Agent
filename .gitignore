@@ -19,8 +19,11 @@ application_default_credentials.json
 
 # Run output
 logs/
-evaluation/reports/*
-!evaluation/reports/.gitkeep
+
+# Timestamped evaluation reports are noise, but latest.* is committed so a
+# reader can check the numbers the documentation quotes.
+evaluation/reports/report-*
+
 
 # macOS
 .DS_Store

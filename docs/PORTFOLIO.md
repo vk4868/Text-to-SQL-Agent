@@ -1,6 +1,6 @@
 # Portfolio notes
 
-Every number here comes from `evaluation/reports/latest.json` or `logs/runs.jsonl`. Re-run `uv run python -m evaluation.run_evaluation` and update them rather than letting them drift.
+Every number here comes from `evaluation/reports/latest.json` (committed, so a reader can check it) or from `logs/runs.jsonl` (gitignored — regenerate it by running the agent). Re-run `uv run python -m evaluation.run_evaluation` and update these rather than letting them drift.
 
 ---
 
@@ -10,15 +10,15 @@ Pick two or three. Each is tied to something measured, not asserted.
 
 > **Built a text-to-SQL analytics agent over Google BigQuery** (Python, LangGraph, sqlglot, local Gemma via Ollama) that answers plain-English business questions with generated SQL, executes it read-only under enforced cost/row/time caps, and explains the result — **73% end-to-end pass rate on a 15-question golden set**, with **93% execution accuracy** on the SQL itself.
 
-> **Designed a six-stage deterministic guardrail pipeline** that parses model-generated SQL to an AST and refuses anything unsafe before execution — **19/19 adversarial queries blocked** (DML, DDL, stacked statements, foreign datasets, unqualified tables, CTE shadowing), every one refused during parsing, before a byte was scanned.
+> **Designed a six-stage deterministic guardrail pipeline** that parses model-generated SQL to an AST and refuses anything unsafe before execution — **19/19 adversarial queries blocked** (DML, DDL, stacked statements, foreign datasets, unqualified tables, CTE shadowing), every one refused before a byte of table data was scanned — no dry run, no execution, nothing billed.
 
 > **Extended output verification from SQL into prose**: a deterministic checker proves every figure in the model's written analysis is present in, or derivable from, the query result. It caught real model arithmetic errors in live runs — including a quarterly total off by **$1,000** stated alongside its own correct addends.
 
-> **Instrumented the agent end to end** with structured per-run records (token accounting, per-node timings, cost, guardrail outcomes), then used them to locate the real bottleneck: **analysis generation is 68% of a 21s run**, not the SQL work.
+> **Instrumented the agent end to end** with structured per-run records (token accounting, per-node timings, cost, guardrail outcomes), then used them to locate the real bottleneck: **analysis generation is ~71% of a ~22s run**, not the SQL work.
 
 > **Built a reproducible evaluation harness with no LLM judge** — execution accuracy compares result sets by value against hand-written reference queries (Spider/BIRD-style), and a `--fail-under` threshold turns it into a CI gate rather than a number someone reads once.
 
-> **Wrote 362 hermetic tests** that run with no cloud credentials and no model, using a scripted LLM fake and an injected BigQuery client; verified them by mutation testing rather than assuming a green suite means anything.
+> **Wrote 400+ hermetic tests** that run with no cloud credentials and no model, using a scripted LLM fake and an injected BigQuery client; verified them by mutation testing rather than assuming a green suite means anything.
 
 ### If you need one line
 
@@ -52,7 +52,7 @@ Point at the trace line: schema → generate → execute → analyse, with per-n
 uv run python -m evaluation.run_evaluation --guardrails-only
 ```
 
-`19/19 adversarial queries refused` in about a second. "No LLM involved — these go straight into the pipeline. DROP, stacked statements, foreign datasets, a CTE shadowing a real table. All refused during parsing, before anything reaches BigQuery."
+`19/19 adversarial queries refused` in about two seconds. "No LLM involved — these go straight into the pipeline. DROP, stacked statements, foreign datasets, a CTE shadowing a real table. All refused before a byte of table data is scanned — no dry run, no execution, nothing billed."
 
 **3 · The interesting part (30s)**
 
@@ -70,7 +70,7 @@ Show a run where the guard fired:
 uv run python scripts/report_runs.py
 ```
 
-"Every run is recorded — tokens, per-node timing, cost, whether the analysis was grounded. That's how I know analysis is 68% of latency rather than guessing."
+"Every run is recorded — tokens, per-node timing, cost, whether the analysis was grounded. That's how I know analysis is ~71% of latency rather than guessing."
 
 ---
 
@@ -84,8 +84,8 @@ uv run python scripts/report_runs.py
 | Adversarial queries refused | 19/19 (100%) |
 | Mean latency / p95 | 21.0s / 25.2s |
 | Mean tokens per question | 2,404 |
-| Share of latency in analysis | ~68% |
-| Tests | 362, hermetic |
+| Share of latency in analysis | ~71% |
+| Tests | 400+, hermetic |
 | Dataset | 1,500 rows, 3 tables |
 
 ---
@@ -98,7 +98,7 @@ Do not hide them — being able to name them precisely is the point.
 
 **"Your checker has false positives."** It did, and finding them was most of the work. The first evaluation run scored 47%, and inspection showed half the failures were my own bugs — a regex capturing a trailing comma, percentages compared against absolute values, and a category error where I was checking the `SUGGESTED FOLLOW-UP` section that the prompt *requires* to discuss data outside the result. The number moved 47% → 40% → 73% with no change to the model. Every move was the instrument getting more honest.
 
-**"How do you know the checker works?"** Mutation testing. Independent audits deliberately broke the source — deleted the injection seam, dropped the subtotal grounding, made the zero-row path call the LLM — and confirmed the suite fails. Where it did not fail, that was a real coverage gap and I closed it.
+**"How do you know the checker works?"** Mutation testing. Each phase was audited by deliberately breaking the source — deleting the client injection seam, dropping the subtotal grounding, making the zero-row path call the LLM, making the CLI return 0 on failure — and confirming the suite fails. Where it did not fail, that was a real coverage gap and I closed it; several of the tests in the suite exist only because a mutation slipped through first.
 
 **"What would you do differently at scale?"** Schema retrieval. Dumping the whole schema into every prompt is correct for 3 tables and hopeless for 10,000 — it becomes a retrieval problem over table cards, and the guardrails become more important, not less, because the allowlist stops being something a human can eyeball.
 

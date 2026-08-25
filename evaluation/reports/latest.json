@@ -1,0 +1,630 @@
+{
+  "timestamp_utc": "2026-08-25T02:20:44.615692+00:00",
+  "model_name": "gemma4:latest",
+  "summary": {
+    "cases": 15,
+    "passed": 11,
+    "pass_rate": 0.7333333333333333,
+    "metrics": {
+      "guardrail_pass": {
+        "passed": 15,
+        "total": 15
+      },
+      "executed": {
+        "passed": 15,
+        "total": 15
+      },
+      "table_grounding": {
+        "passed": 15,
+        "total": 15
+      },
+      "execution_accuracy": {
+        "passed": 14,
+        "total": 15
+      },
+      "repair_efficiency": {
+        "passed": 15,
+        "total": 15
+      },
+      "analysis_grounding": {
+        "passed": 12,
+        "total": 15
+      }
+    },
+    "latency_ms": {
+      "mean": 21029.0,
+      "p50": 19299.3,
+      "p95": 25211.3
+    },
+    "tokens": {
+      "mean": 2403.9,
+      "total": 36059
+    },
+    "repairs": {
+      "total": 0,
+      "cases_needing_repair": 0
+    }
+  },
+  "guardrails": {
+    "total": 19,
+    "blocked": 19,
+    "by_stage": {
+      "validation": 11,
+      "table_access": 7,
+      "result_limit": 1
+    },
+    "failures": []
+  },
+  "cases": [
+    {
+      "case_id": "net_sales_by_month_2025",
+      "question": "What were total net sales by month in 2025?",
+      "category": "time_series_aggregation",
+      "difficulty": "easy",
+      "passed": true,
+      "scores": {
+        "guardrail_pass": {
+          "passed": true,
+          "detail": ""
+        },
+        "executed": {
+          "passed": true,
+          "detail": ""
+        },
+        "table_grounding": {
+          "passed": true,
+          "detail": ""
+        },
+        "execution_accuracy": {
+          "passed": true,
+          "detail": ""
+        },
+        "repair_efficiency": {
+          "passed": true,
+          "detail": "0 repair(s)"
+        },
+        "analysis_grounding": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "generated_sql": "SELECT\n    FORMAT_DATE('%Y-%m', sale_date) AS sales_month,\n    SUM(net_revenue) AS total_net_sales\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales`\nWHERE\n    sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY\n    sales_month\nORDER BY\n    sales_month",
+      "repair_attempts": 0,
+      "total_tokens": 3155,
+      "duration_ms": 25211.32,
+      "graph_run_id": "bc66fc09-cc72-4fe2-bca7-75312a8efc95"
+    },
+    {
+      "case_id": "total_net_sales_2025",
+      "question": "What were total net sales in 2025?",
+      "category": "aggregation",
+      "difficulty": "easy",
+      "passed": true,
+      "scores": {
+        "guardrail_pass": {
+          "passed": true,
+          "detail": ""
+        },
+        "executed": {
+          "passed": true,
+          "detail": ""
+        },
+        "table_grounding": {
+          "passed": true,
+          "detail": ""
+        },
+        "execution_accuracy": {
+          "passed": true,
+          "detail": ""
+        },
+        "repair_efficiency": {
+          "passed": true,
+          "detail": "0 repair(s)"
+        },
+        "analysis_grounding": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "generated_sql": "SELECT\n    SUM(t1.net_revenue) AS total_net_sales_2025\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales` AS t1\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')",
+      "repair_attempts": 0,
+      "total_tokens": 2316,
+      "duration_ms": 18110.89,
+      "graph_run_id": "e405ef91-d10e-4f82-b3c4-5b2fade49956"
+    },
+    {
+      "case_id": "total_profit_2025",
+      "question": "What was the total profit in 2025?",
+      "category": "aggregation",
+      "difficulty": "easy",
+      "passed": true,
+      "scores": {
+        "guardrail_pass": {
+          "passed": true,
+          "detail": ""
+        },
+        "executed": {
+          "passed": true,
+          "detail": ""
+        },
+        "table_grounding": {
+          "passed": true,
+          "detail": ""
+        },
+        "execution_accuracy": {
+          "passed": true,
+          "detail": ""
+        },
+        "repair_efficiency": {
+          "passed": true,
+          "detail": "0 repair(s)"
+        },
+        "analysis_grounding": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "generated_sql": "SELECT\n    SUM(t1.profit_amount) AS total_profit_2025\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales` AS t1\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')",
+      "repair_attempts": 0,
+      "total_tokens": 2152,
+      "duration_ms": 15885.52,
+      "graph_run_id": "3d5799cf-4ed7-4671-a552-b4cc66bd8808"
+    },
+    {
+      "case_id": "profit_by_category_2025",
+      "question": "Which product category generated the most profit in 2025?",
+      "category": "join",
+      "difficulty": "medium",
+      "passed": true,
+      "scores": {
+        "guardrail_pass": {
+          "passed": true,
+          "detail": ""
+        },
+        "executed": {
+          "passed": true,
+          "detail": ""
+        },
+        "table_grounding": {
+          "passed": true,
+          "detail": ""
+        },
+        "execution_accuracy": {
+          "passed": true,
+          "detail": ""
+        },
+        "repair_efficiency": {
+          "passed": true,
+          "detail": "0 repair(s)"
+        },
+        "analysis_grounding": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "generated_sql": "SELECT\n    t2.category,\n    SUM(t1.profit_amount) AS total_profit\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales` AS t1\nINNER JOIN\n    `sql-bigquery-502206.business_insights.dim_products` AS t2 ON t1.product_id = t2.product_id\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY\n    t2.category\nORDER BY\n    total_profit DESC\nLIMIT 1",
+      "repair_attempts": 0,
+      "total_tokens": 2382,
+      "duration_ms": 17443.48,
+      "graph_run_id": "183887a9-a7e1-466b-9b87-0f8a62f23a38"
+    },
+    {
+      "case_id": "top_5_products_by_revenue_2025",
+      "question": "What were the top 5 products by net revenue in 2025?",
+      "category": "ranking",
+      "difficulty": "medium",
+      "passed": true,
+      "scores": {
+        "guardrail_pass": {
+          "passed": true,
+          "detail": ""
+        },
+        "executed": {
+          "passed": true,
+          "detail": ""
+        },
+        "table_grounding": {
+          "passed": true,
+          "detail": ""
+        },
+        "execution_accuracy": {
+          "passed": true,
+          "detail": ""
+        },
+        "repair_efficiency": {
+          "passed": true,
+          "detail": "0 repair(s)"
+        },
+        "analysis_grounding": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "generated_sql": "SELECT\n    t2.product_name,\n    SUM(t1.net_revenue) AS total_net_revenue\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales` AS t1\nINNER JOIN\n    `sql-bigquery-502206.business_insights.dim_products` AS t2\nON\n    t1.product_id = t2.product_id\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY\n    t2.product_name\nORDER BY\n    total_net_revenue DESC\nLIMIT 5",
+      "repair_attempts": 0,
+      "total_tokens": 2755,
+      "duration_ms": 20579.04,
+      "graph_run_id": "e34ab2e5-7365-432a-8947-103661df1798"
+    },
+    {
+      "case_id": "revenue_by_region_2025",
+      "question": "How did net revenue break down by branch region in 2025?",
+      "category": "aggregation",
+      "difficulty": "easy",
+      "passed": false,
+      "scores": {
+        "guardrail_pass": {
+          "passed": true,
+          "detail": ""
+        },
+        "executed": {
+          "passed": true,
+          "detail": ""
+        },
+        "table_grounding": {
+          "passed": true,
+          "detail": ""
+        },
+        "execution_accuracy": {
+          "passed": true,
+          "detail": ""
+        },
+        "repair_efficiency": {
+          "passed": true,
+          "detail": "0 repair(s)"
+        },
+        "analysis_grounding": {
+          "passed": false,
+          "detail": "ungrounded figures: ['58%']"
+        }
+      },
+      "generated_sql": "SELECT\n    t1.branch_region,\n    SUM(t1.net_revenue) AS total_net_revenue\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales` AS t1\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY 1",
+      "repair_attempts": 0,
+      "total_tokens": 2599,
+      "duration_ms": 20103.75,
+      "graph_run_id": "32fb67eb-5153-494a-9bba-7c744f9b453e"
+    },
+    {
+      "case_id": "electronics_november_december_2025",
+      "question": "What were net sales for the Electronics category in November and December 2025?",
+      "category": "join",
+      "difficulty": "medium",
+      "passed": true,
+      "scores": {
+        "guardrail_pass": {
+          "passed": true,
+          "detail": ""
+        },
+        "executed": {
+          "passed": true,
+          "detail": ""
+        },
+        "table_grounding": {
+          "passed": true,
+          "detail": ""
+        },
+        "execution_accuracy": {
+          "passed": true,
+          "detail": ""
+        },
+        "repair_efficiency": {
+          "passed": true,
+          "detail": "0 repair(s)"
+        },
+        "analysis_grounding": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "generated_sql": "SELECT\n    SUM(t1.net_revenue) AS total_net_sales\nFROM\n    sql-bigquery-502206.business_insights.fact_sales AS t1\nINNER JOIN\n    sql-bigquery-502206.business_insights.dim_products AS t2 ON t1.product_id = t2.product_id\nWHERE\n    t2.category = 'Electronics' AND t1.sale_date BETWEEN '2025-11-01' AND '2025-12-31'",
+      "repair_attempts": 0,
+      "total_tokens": 2482,
+      "duration_ms": 19299.28,
+      "graph_run_id": "914c2a21-4fe1-468f-9df0-08dfc0af0b93"
+    },
+    {
+      "case_id": "sales_by_membership_status_2025",
+      "question": "How did net revenue compare between members and non-members in 2025?",
+      "category": "join",
+      "difficulty": "medium",
+      "passed": true,
+      "scores": {
+        "guardrail_pass": {
+          "passed": true,
+          "detail": ""
+        },
+        "executed": {
+          "passed": true,
+          "detail": ""
+        },
+        "table_grounding": {
+          "passed": true,
+          "detail": ""
+        },
+        "execution_accuracy": {
+          "passed": true,
+          "detail": ""
+        },
+        "repair_efficiency": {
+          "passed": true,
+          "detail": "0 repair(s)"
+        },
+        "analysis_grounding": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "generated_sql": "SELECT\n    t1.membership_status,\n    SUM(t2.net_revenue) AS total_net_revenue\nFROM\n    `sql-bigquery-502206.business_insights.dim_customers` AS t1\nINNER JOIN\n    `sql-bigquery-502206.business_insights.fact_sales` AS t2\nON\n    t1.customer_id = t2.customer_id\nWHERE\n    t2.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY\n    t1.membership_status",
+      "repair_attempts": 0,
+      "total_tokens": 2375,
+      "duration_ms": 17672.91,
+      "graph_run_id": "c8134135-8051-41ab-9fdd-c4cb5d73638f"
+    },
+    {
+      "case_id": "transaction_count_2025",
+      "question": "How many sales transactions were recorded in 2025?",
+      "category": "aggregation",
+      "difficulty": "easy",
+      "passed": true,
+      "scores": {
+        "guardrail_pass": {
+          "passed": true,
+          "detail": ""
+        },
+        "executed": {
+          "passed": true,
+          "detail": ""
+        },
+        "table_grounding": {
+          "passed": true,
+          "detail": ""
+        },
+        "execution_accuracy": {
+          "passed": true,
+          "detail": ""
+        },
+        "repair_efficiency": {
+          "passed": true,
+          "detail": "0 repair(s)"
+        },
+        "analysis_grounding": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "generated_sql": "SELECT\n    COUNT(t1.sale_id)\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales` AS t1\nWHERE\n    t1.sale_date BETWEEN '2025-01-01' AND '2025-12-31'",
+      "repair_attempts": 0,
+      "total_tokens": 2253,
+      "duration_ms": 56477.4,
+      "graph_run_id": "95f497e8-69a4-4260-9637-91173d0662ad"
+    },
+    {
+      "case_id": "average_discount_by_promotion_2025",
+      "question": "What was the average discount percentage by promotion type in 2025?",
+      "category": "aggregation",
+      "difficulty": "medium",
+      "passed": true,
+      "scores": {
+        "guardrail_pass": {
+          "passed": true,
+          "detail": ""
+        },
+        "executed": {
+          "passed": true,
+          "detail": ""
+        },
+        "table_grounding": {
+          "passed": true,
+          "detail": ""
+        },
+        "execution_accuracy": {
+          "passed": true,
+          "detail": ""
+        },
+        "repair_efficiency": {
+          "passed": true,
+          "detail": "0 repair(s)"
+        },
+        "analysis_grounding": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "generated_sql": "SELECT\n    t1.promotion_type,\n    AVG(t1.discount_pct) AS average_discount_percentage\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales` AS t1\nWHERE\n    EXTRACT(YEAR FROM t1.sale_date) = 2025\nGROUP BY 1",
+      "repair_attempts": 0,
+      "total_tokens": 2280,
+      "duration_ms": 19025.6,
+      "graph_run_id": "3b4b0b9e-1dbb-4a00-b3ea-11dc124a9bf5"
+    },
+    {
+      "case_id": "profit_margin_by_category_2025",
+      "question": "What was the profit margin as a percentage of net revenue for each product category in 2025?",
+      "category": "ratio",
+      "difficulty": "hard",
+      "passed": false,
+      "scores": {
+        "guardrail_pass": {
+          "passed": true,
+          "detail": ""
+        },
+        "executed": {
+          "passed": true,
+          "detail": ""
+        },
+        "table_grounding": {
+          "passed": true,
+          "detail": ""
+        },
+        "execution_accuracy": {
+          "passed": false,
+          "detail": "row count 6 vs 6; missing e.g. (Personal Care, 54.2); unexpected e.g. (Personal Care, 0.5)"
+        },
+        "repair_efficiency": {
+          "passed": true,
+          "detail": "0 repair(s)"
+        },
+        "analysis_grounding": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "generated_sql": "SELECT\n    t2.category,\n    CAST(SUM(t1.profit_amount) AS NUMERIC) / NULLIF(SUM(t1.net_revenue), 0) AS profit_margin_percentage\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales` AS t1\nINNER JOIN\n    `sql-bigquery-502206.business_insights.dim_products` AS t2 ON t1.product_id = t2.product_id\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY\n    t2.category",
+      "repair_attempts": 0,
+      "total_tokens": 2803,
+      "duration_ms": 21533.65,
+      "graph_run_id": "dd3cdf91-793c-4969-bed7-80585f1f063d"
+    },
+    {
+      "case_id": "sales_by_channel_2025",
+      "question": "What was the split of net revenue by sales channel in 2025?",
+      "category": "aggregation",
+      "difficulty": "easy",
+      "passed": false,
+      "scores": {
+        "guardrail_pass": {
+          "passed": true,
+          "detail": ""
+        },
+        "executed": {
+          "passed": true,
+          "detail": ""
+        },
+        "table_grounding": {
+          "passed": true,
+          "detail": ""
+        },
+        "execution_accuracy": {
+          "passed": true,
+          "detail": ""
+        },
+        "repair_efficiency": {
+          "passed": true,
+          "detail": "0 repair(s)"
+        },
+        "analysis_grounding": {
+          "passed": false,
+          "detail": "ungrounded figures: ['48%', '$24,700.65']"
+        }
+      },
+      "generated_sql": "SELECT\n    t1.sales_channel,\n    SUM(t1.net_revenue) AS total_net_revenue\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales` AS t1\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY 1",
+      "repair_attempts": 0,
+      "total_tokens": 2569,
+      "duration_ms": 21823.87,
+      "graph_run_id": "12101bc6-024e-4124-a53e-ce3981047fa3"
+    },
+    {
+      "case_id": "quantity_sold_by_category_2025",
+      "question": "How many units were sold in each product category in 2025?",
+      "category": "join",
+      "difficulty": "medium",
+      "passed": false,
+      "scores": {
+        "guardrail_pass": {
+          "passed": true,
+          "detail": ""
+        },
+        "executed": {
+          "passed": true,
+          "detail": ""
+        },
+        "table_grounding": {
+          "passed": true,
+          "detail": ""
+        },
+        "execution_accuracy": {
+          "passed": true,
+          "detail": ""
+        },
+        "repair_efficiency": {
+          "passed": true,
+          "detail": "0 repair(s)"
+        },
+        "analysis_grounding": {
+          "passed": false,
+          "detail": "ungrounded figures: ['2,890', '2,209']"
+        }
+      },
+      "generated_sql": "SELECT\n    t2.category,\n    SUM(t1.quantity) AS total_units_sold\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales` AS t1\nINNER JOIN\n    `sql-bigquery-502206.business_insights.dim_products` AS t2 ON t1.product_id = t2.product_id\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY\n    t2.category",
+      "repair_attempts": 0,
+      "total_tokens": 2751,
+      "duration_ms": 22381.59,
+      "graph_run_id": "a2243965-548d-4bda-8917-db16b6346a02"
+    },
+    {
+      "case_id": "best_month_for_profit_2025",
+      "question": "Which month of 2025 had the highest profit?",
+      "category": "ranking",
+      "difficulty": "medium",
+      "passed": true,
+      "scores": {
+        "guardrail_pass": {
+          "passed": true,
+          "detail": ""
+        },
+        "executed": {
+          "passed": true,
+          "detail": ""
+        },
+        "table_grounding": {
+          "passed": true,
+          "detail": ""
+        },
+        "execution_accuracy": {
+          "passed": true,
+          "detail": ""
+        },
+        "repair_efficiency": {
+          "passed": true,
+          "detail": "0 repair(s)"
+        },
+        "analysis_grounding": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "generated_sql": "SELECT\n    FORMAT_DATE('%Y-%m', sale_date) AS sale_month,\n    SUM(profit_amount) AS total_profit\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales`\nWHERE\n    sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY\n    sale_month\nORDER BY\n    total_profit DESC\nLIMIT 1",
+      "repair_attempts": 0,
+      "total_tokens": 2293,
+      "duration_ms": 16558.46,
+      "graph_run_id": "7482d7b1-9529-4ea4-a28e-03753e48d4a1"
+    },
+    {
+      "case_id": "no_sales_in_1999",
+      "question": "What were net sales by month in 1999?",
+      "category": "empty_result",
+      "difficulty": "easy",
+      "passed": true,
+      "scores": {
+        "guardrail_pass": {
+          "passed": true,
+          "detail": ""
+        },
+        "executed": {
+          "passed": true,
+          "detail": ""
+        },
+        "table_grounding": {
+          "passed": true,
+          "detail": ""
+        },
+        "execution_accuracy": {
+          "passed": true,
+          "detail": ""
+        },
+        "repair_efficiency": {
+          "passed": true,
+          "detail": "0 repair(s)"
+        },
+        "analysis_grounding": {
+          "passed": true,
+          "detail": ""
+        }
+      },
+      "generated_sql": "SELECT\n    FORMAT_DATE('%Y-%m', t1.sale_date) AS sales_month,\n    SUM(t1.net_revenue) AS total_net_sales\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales` AS t1\nWHERE\n    t1.sale_date BETWEEN DATE('1999-01-01') AND DATE('1999-12-31')\nGROUP BY\n    sales_month\nORDER BY\n    sales_month",
+      "repair_attempts": 0,
+      "total_tokens": 894,
+      "duration_ms": 3328.07,
+      "graph_run_id": "611679db-fd77-48f4-8824-f367ed3f573f"
+    }
+  ]
+}
