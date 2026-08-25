@@ -65,6 +65,35 @@ def format_rows(
     return "\n".join(lines)
 
 
+def format_grounding_warning(analysis: dict[str, Any]) -> str:
+    """Warn the reader when the analysis failed a deterministic check.
+
+    Shown rather than hidden: the point of checking the prose is that the
+    reader learns the model said something the data does not support.
+    """
+
+    lines: list[str] = []
+
+    ungrounded = analysis.get("ungrounded_numbers") or []
+    if ungrounded:
+        lines.append(
+            "⚠ NOT DERIVABLE FROM THE RESULT: "
+            + ", ".join(str(value) for value in ungrounded)
+        )
+        lines.append(
+            "  These figures are not in the returned rows, nor a subtotal "
+            "or aggregate of them."
+        )
+
+    violations = analysis.get("contract_violations") or []
+    if violations:
+        lines.append(
+            "⚠ FORMAT: " + "; ".join(str(item) for item in violations)
+        )
+
+    return "\n".join(lines)
+
+
 def format_trace(record: dict[str, Any]) -> str:
     """Render the per-node timings as one line."""
 
@@ -130,9 +159,15 @@ def format_run_for_terminal(
         )
         sections.append("")
 
-        analysis = record.get("analysis", {}).get("business_analysis")
+        analysis_section = record.get("analysis", {})
+        analysis = analysis_section.get("business_analysis")
         if analysis:
             sections.append(analysis.strip())
+            sections.append("")
+
+        warning = format_grounding_warning(analysis_section)
+        if warning:
+            sections.append(warning)
             sections.append("")
     else:
         sections.append(

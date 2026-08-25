@@ -217,5 +217,17 @@ def build_graph_run_record(
             "rows_were_truncated": analysis_metadata.get(
                 "rows_were_truncated"
             ),
+            # Deterministic checks on what the model wrote. These are the
+            # evidence that "the LLM is untrusted" holds for the prose too.
+            "contract_violations": analysis_metadata.get(
+                "contract_violations", []
+            ),
+            "ungrounded_numbers": analysis_metadata.get(
+                "ungrounded_numbers", []
+            ),
+            "is_grounded": analysis_metadata.get("is_grounded"),
+            "was_generated_deterministically": analysis_metadata.get(
+                "was_generated_deterministically"
+            ),
         },
     }

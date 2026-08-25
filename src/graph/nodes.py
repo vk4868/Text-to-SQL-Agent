@@ -618,13 +618,27 @@ class InsightsGraphNodes:
                 "rows_were_truncated": (
                     analysis_result.rows_were_truncated
                 ),
+                "contract_violations": (
+                    analysis_result.contract_violations
+                ),
+                "ungrounded_numbers": (
+                    analysis_result.ungrounded_numbers
+                ),
+                "is_grounded": analysis_result.is_grounded,
+                "was_generated_deterministically": (
+                    analysis_result.was_generated_deterministically
+                ),
             },
-            "llm_calls": [
-                _llm_call_record(
-                    "result_analysis",
-                    analysis_result.llm_response,
-                )
-            ],
+            "llm_calls": (
+                []
+                if analysis_result.was_generated_deterministically
+                else [
+                    _llm_call_record(
+                        "result_analysis",
+                        analysis_result.llm_response,
+                    )
+                ]
+            ),
             "error_stage": "",
             "error_message": "",
         }
