@@ -533,3 +533,182 @@ class TestContiguousEnumerationIsTight:
         assert find_ungrounded_numbers(
             "The pair totalled 351.", rows
         ) == ["351"]
+
+
+class TestOnlyClaimBearingSectionsAreChecked:
+    """LIMITATIONS and SUGGESTED FOLLOW-UP discuss data outside the result.
+
+    The prompt asks for a follow-up suggestion, so the model routinely writes
+    "compare against 2024" or "retrieve products ranked 6 through 15". Those
+    are proposals, not assertions, and reporting them as hallucinations was
+    the dominant false-positive class in the first live evaluation.
+    """
+
+    ROWS = [{"region": "Northeast", "v": Decimal("7356.42")}]
+
+    ANALYSIS = """DIRECT ANSWER:
+Northeast led with 7356.42.
+
+KEY INSIGHTS:
+- Northeast was the top region.
+
+SUPPORTING NUMBERS:
+- Northeast: 7356.42
+
+LIMITATIONS:
+Only 2025 is covered, so no 2024 comparison is possible.
+
+SUGGESTED FOLLOW-UP:
+Compare against 2024 and retrieve products ranked 6 through 15."""
+
+    def test_figures_in_follow_up_are_not_reported(self):
+        from src.analysis_contract import claim_bearing_text
+
+        flagged = find_ungrounded_numbers(
+            claim_bearing_text(self.ANALYSIS),
+            self.ROWS,
+            context=("regions in 2025",),
+        )
+
+        assert flagged == []
+
+    def test_a_fabrication_in_a_claim_section_is_still_reported(self):
+        from src.analysis_contract import claim_bearing_text
+
+        analysis = self.ANALYSIS.replace(
+            "Northeast led with 7356.42.",
+            "Northeast led with 9999.99.",
+        )
+
+        flagged = find_ungrounded_numbers(
+            claim_bearing_text(analysis),
+            self.ROWS,
+            context=("regions in 2025",),
+        )
+
+        assert flagged == ["9999.99"]
+
+    def test_unstructured_text_is_checked_in_full(self):
+        """A model that ignores the format must not escape the check."""
+
+        from src.analysis_contract import claim_bearing_text
+
+        analysis = "Sales were 9999.99 last year."
+
+        assert claim_bearing_text(analysis) == analysis
+        assert find_ungrounded_numbers(
+            claim_bearing_text(analysis), self.ROWS
+        ) == ["9999.99"]
+
+    def test_sections_are_split_by_name(self):
+        from src.analysis_contract import split_sections
+
+        sections = split_sections(self.ANALYSIS)
+
+        assert set(sections) == {
+            "DIRECT ANSWER",
+            "KEY INSIGHTS",
+            "SUPPORTING NUMBERS",
+            "LIMITATIONS",
+            "SUGGESTED FOLLOW-UP",
+        }
+        assert "7356.42" in sections["DIRECT ANSWER"]
+        assert "2024" in sections["SUGGESTED FOLLOW-UP"]
+
+
+class TestDifferencesBetweenValues:
+    """"X exceeded Y by Z" is a comparison an analyst makes routinely."""
+
+    ROWS = [
+        {"region": "Northeast", "v": Decimal("7356.42")},
+        {"region": "West", "v": Decimal("7187.59")},
+        {"region": "South", "v": Decimal("4384.61")},
+    ]
+
+    def test_a_correct_difference_is_accepted(self):
+        # 7356.42 - 7187.59 = 168.83
+        assert (
+            find_ungrounded_numbers(
+                "The Northeast exceeded the West by 168.83.", self.ROWS
+            )
+            == []
+        )
+
+    def test_a_wrong_difference_is_reported(self):
+        """This exact error appeared in a live run."""
+
+        assert find_ungrounded_numbers(
+            "The Northeast exceeded the West by 169.83.", self.ROWS
+        ) == ["169.83"]
+
+    def test_a_non_adjacent_difference_is_accepted(self):
+        # 7356.42 - 4384.61 = 2971.81
+        assert (
+            find_ungrounded_numbers(
+                "Northeast beat South by 2971.81.", self.ROWS
+            )
+            == []
+        )
+
+
+class TestRealArithmeticErrorsFromLiveRuns:
+    """Regression cases: every one of these was a real model mistake.
+
+    Captured from live evaluation runs so the guard can never lose them.
+    """
+
+    MONTHLY = [
+        {"m": f"2025-{i:02d}", "v": Decimal(str(v))}
+        for i, v in enumerate(
+            [
+                1462.66, 1189.28, 2714.11, 2315.33, 1936.36, 1933.90,
+                1694.03, 2057.30, 1860.04, 2105.37, 2574.25, 2958.02,
+            ],
+            start=1,
+        )
+    ]
+
+    UNITS = [
+        {"c": "Beverages", "q": 828},
+        {"c": "Fruits", "q": 692},
+        {"c": "Stationery", "q": 679},
+    ]
+
+    def test_q1_subtotal_off_by_one_dollar(self):
+        # Real Q1 is 5366.05.
+        assert find_ungrounded_numbers(
+            "Q1 Total (Jan-Mar): $5,365.05", self.MONTHLY
+        ) == ["$5,365.05"]
+
+    def test_q4_subtotal_off_by_thirty_one_dollars(self):
+        # Real Q4 is 7637.64.
+        assert find_ungrounded_numbers(
+            "Q4 Total (Oct-Dec): $7,668.64", self.MONTHLY
+        ) == ["$7,668.64"]
+
+    def test_year_total_off_by_ten_dollars(self):
+        # Real total is 24800.65.
+        assert find_ungrounded_numbers(
+            "The total combined net revenue was $24,790.65.", self.MONTHLY
+        ) == ["$24,790.65"]
+
+    def test_unit_total_off_by_ten(self):
+        # 828 + 692 + 679 = 2199.
+        assert find_ungrounded_numbers(
+            "The top three categories account for 2,209 units.", self.UNITS
+        ) == ["2,209"]
+
+    def test_the_correct_versions_all_pass(self):
+        assert (
+            find_ungrounded_numbers(
+                "Q1 was $5,366.05, Q4 was $7,637.64, the year $24,800.65.",
+                self.MONTHLY,
+            )
+            == []
+        )
+        assert (
+            find_ungrounded_numbers(
+                "The top three account for 2,199 units.", self.UNITS
+            )
+            == []
+        )

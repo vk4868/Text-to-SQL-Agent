@@ -79,7 +79,10 @@ class TestEndToEndRendering:
     def test_an_invented_figure_reaches_the_reader(self):
         """The whole point: the reader is told what the data did not support."""
 
-        analysis = WELL_FORMED_ANALYSIS + "\nA grand total of $99,123.45."
+        analysis = WELL_FORMED_ANALYSIS.replace(
+                "KEY INSIGHTS:",
+                "KEY INSIGHTS:\n- A grand total of $99,123.45.",
+            )
 
         agent = make_agent(
             bigquery_service=FakeBigQueryService(),

@@ -159,7 +159,10 @@ class TestScoringFailures:
 
     def test_an_invented_figure_fails_analysis_grounding(self):
         service = FakeBigQueryService()
-        analysis = WELL_FORMED_ANALYSIS + "\nA total of $77,777.77."
+        analysis = WELL_FORMED_ANALYSIS.replace(
+            "KEY INSIGHTS:",
+            "KEY INSIGHTS:\n- A total of $77,777.77.",
+        )
 
         agent = make_agent(
             service, ScriptedLLMClient([AGENT_SQL, analysis])

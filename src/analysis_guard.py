@@ -17,6 +17,8 @@ QUESTION already contained. Anything else is reported.
   quarter or period total is over an ordered result
 - a fraction rendered as a percentage, so a `discount_pct` of 0.125 supports
   "12.5%"
+- the difference between any two values in a column, which is what "the
+  Northeast exceeded the West by 168.83" is
 - the row count
 
 Two rules exist to keep the trust model sound:
@@ -31,9 +33,13 @@ skipped as structural ("three points", "Q4", "the top 5"), but "$8" and "8%"
 are factual claims about the data, and a fabricated margin or churn count is
 exactly what a reader would act on.
 
+Only the claim-bearing sections are checked. LIMITATIONS and SUGGESTED
+FOLLOW-UP are asked by the prompt to discuss data that is not in the result,
+so figures there are proposals rather than assertions.
+
 Known limitations, all of which cause over-reporting rather than silence:
-ratios ("4.5 times greater"), differences between rows, and means over a
-subset are not enumerated, so a model that computes one is reported. A flag
+ratios ("4.5 times greater") and means over a subset are not enumerated, so a
+model that computes one is reported. A flag
 therefore means "not mechanically derivable from the result", which is a
 prompt to check — not proof of a lie. In the other direction, the grounded
 set grows with the result, so on integer-valued data a fabricated value can
@@ -224,6 +230,31 @@ def _contiguous_sums(
     return sums
 
 
+def _pairwise_differences(
+    values: list[Decimal],
+    *,
+    max_rows: int = MAX_WINDOW_ROWS,
+) -> set[Decimal]:
+    """Return the difference between every pair of values in a column.
+
+    "The Northeast exceeded the West by 168.83" is a comparison a reader
+    expects an analyst to make, and it is O(n^2) to enumerate, same as the
+    subtotals. A model that gets the subtraction WRONG is still reported,
+    which is the point.
+    """
+
+    if len(values) > max_rows:
+        return set()
+
+    differences: set[Decimal] = set()
+
+    for index, left in enumerate(values):
+        for right in values[index + 1 :]:
+            differences.add(abs(left - right))
+
+    return differences
+
+
 def build_measured_values(rows: list[dict[str, Any]]) -> set[Decimal]:
     """Return values that are genuinely measurements, not text fragments.
 
@@ -251,6 +282,7 @@ def build_measured_values(rows: list[dict[str, Any]]) -> set[Decimal]:
             )
         )
         grounded.update(_contiguous_sums(values))
+        grounded.update(_pairwise_differences(values))
 
     grounded.add(Decimal(len(rows)))
 

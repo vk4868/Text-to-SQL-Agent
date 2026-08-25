@@ -76,7 +76,10 @@ class TestGroundedAnalysis:
         assert result.was_generated_deterministically is False
 
     def test_an_invented_figure_is_reported(self):
-        analysis = WELL_FORMED_ANALYSIS + "\nAnd a total of $99,123.45."
+        analysis = WELL_FORMED_ANALYSIS.replace(
+                "KEY INSIGHTS:",
+                "KEY INSIGHTS:\n- A grand total of $99,123.45.",
+            )
 
         result = analyze(ScriptedLLMClient([analysis]))
 
@@ -155,3 +158,28 @@ class TestValidation:
     def test_an_empty_model_response_is_rejected(self):
         with pytest.raises(ValueError, match="empty analysis"):
             analyze(ScriptedLLMClient(["   "]))
+
+
+class TestSectionScoping:
+    """Figures in the forward-looking sections are proposals, not claims."""
+
+    def test_a_figure_in_the_follow_up_is_not_reported(self):
+        analysis = WELL_FORMED_ANALYSIS.replace(
+            "Break the same period down by product category.",
+            "Compare against the 2024 total of $88,888.88.",
+        )
+
+        result = analyze(ScriptedLLMClient([analysis]))
+
+        assert result.ungrounded_numbers == []
+        assert result.is_grounded is True
+
+    def test_a_figure_in_a_claim_section_is_still_reported(self):
+        analysis = WELL_FORMED_ANALYSIS.replace(
+            "DIRECT ANSWER:",
+            "DIRECT ANSWER:\nSales totalled $88,888.88.",
+        )
+
+        result = analyze(ScriptedLLMClient([analysis]))
+
+        assert result.ungrounded_numbers == ["$88,888.88"]

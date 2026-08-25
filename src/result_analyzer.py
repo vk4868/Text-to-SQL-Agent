@@ -2,7 +2,10 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from src import config
-from src.analysis_contract import validate_analysis_structure
+from src.analysis_contract import (
+    claim_bearing_text,
+    validate_analysis_structure,
+)
 from src.analysis_guard import find_ungrounded_numbers
 from src.llm.base import (
     LLMClient,
@@ -137,8 +140,11 @@ class ResultAnalyzer:
             # NOT passed: it is the same untrusted model output being
             # checked, so a model could otherwise launder a fabricated
             # figure by first writing it into its own WHERE clause.
+            # Only the claim-bearing sections. LIMITATIONS and SUGGESTED
+            # FOLLOW-UP are asked to discuss data outside the result, so
+            # their figures are proposals rather than assertions.
             ungrounded_numbers=find_ungrounded_numbers(
-                analysis,
+                claim_bearing_text(analysis),
                 rows_for_analysis,
                 context=(question,),
             ),

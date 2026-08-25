@@ -16,6 +16,20 @@ REQUIRED_SECTIONS = (
     "SUGGESTED FOLLOW-UP",
 )
 
+#: The sections that assert something about the returned data, and are
+#: therefore the ones worth checking figures in.
+#:
+#: LIMITATIONS and SUGGESTED FOLLOW-UP are deliberately excluded: the prompt
+#: asks them to talk about data that is NOT in the result — "compare against
+#: 2024", "retrieve products ranked 6 through 15". Numbers there are
+#: proposals, not claims, and checking them reports a category error as a
+#: hallucination.
+CLAIM_BEARING_SECTIONS = (
+    "DIRECT ANSWER",
+    "KEY INSIGHTS",
+    "SUPPORTING NUMBERS",
+)
+
 # Markdown tables are forbidden by the prompt; they render badly in a terminal
 # and in most of the places this text ends up.
 _MARKDOWN_TABLE = re.compile(r"^\s*\|.*\|\s*$", re.MULTILINE)
@@ -58,3 +72,55 @@ def validate_analysis_structure(analysis: str) -> list[str]:
         )
 
     return violations
+
+
+def split_sections(analysis: str) -> dict[str, str]:
+    """Split an analysis into its named sections.
+
+    Text before the first recognised header is returned under "" so that a
+    model which omits headers entirely is still checked rather than skipped.
+    """
+
+    positions: list[tuple[int, str]] = []
+
+    for section in REQUIRED_SECTIONS:
+        match = _section_pattern(section).search(analysis)
+        if match:
+            positions.append((match.start(), section))
+
+    positions.sort()
+
+    if not positions:
+        return {"": analysis}
+
+    sections: dict[str, str] = {}
+
+    preamble = analysis[: positions[0][0]].strip()
+    if preamble:
+        sections[""] = preamble
+
+    for index, (start, name) in enumerate(positions):
+        end = (
+            positions[index + 1][0]
+            if index + 1 < len(positions)
+            else len(analysis)
+        )
+        sections[name] = analysis[start:end]
+
+    return sections
+
+
+def claim_bearing_text(analysis: str) -> str:
+    """Return only the parts of an analysis that assert something."""
+
+    sections = split_sections(analysis)
+
+    if list(sections) == [""]:
+        # No recognisable structure, so check everything.
+        return analysis
+
+    return "\n".join(
+        text
+        for name, text in sections.items()
+        if name in CLAIM_BEARING_SECTIONS or name == ""
+    )
