@@ -349,3 +349,187 @@ class TestContiguousSubtotals:
         values = [Decimal(str(i)) for i in range(200)]
 
         assert _contiguous_sums(values, max_rows=120) == set()
+
+
+class TestTrustModel:
+    """The generated SQL must not ground the generated prose.
+
+    Found by an audit: passing the SQL as context let a model launder a
+    fabrication by writing the number into its own WHERE clause first. One
+    untrusted artefact cannot vouch for another.
+    """
+
+    ROWS = [{"month": "2025-01", "total": Decimal("1462.66")}]
+
+    def test_a_number_from_the_models_own_sql_does_not_ground_prose(self):
+        analysis = "The average order value was 5000."
+
+        flagged = find_ungrounded_numbers(
+            analysis,
+            self.ROWS,
+            context=("What were sales?",),
+        )
+
+        assert flagged == ["5000"]
+
+    def test_the_question_does_still_ground_prose(self):
+        """Genuine human input is trusted."""
+
+        assert (
+            find_ungrounded_numbers(
+                "Across 2025 sales rose.",
+                self.ROWS,
+                context=("What were sales in 2025?",),
+            )
+            == []
+        )
+
+    def test_the_analyzer_does_not_pass_sql_as_context(self):
+        """Pin the wiring, not just the function."""
+
+        import inspect
+
+        from src.result_analyzer import ResultAnalyzer
+
+        source = inspect.getsource(ResultAnalyzer.analyze)
+
+        assert "context=(question,)" in source, (
+            "ResultAnalyzer must ground the analysis in the question only"
+        )
+        assert "context=(question, sql)" not in source
+
+
+class TestUnitsAreAlwaysChecked:
+    """A figure carrying a unit is a factual claim, however small."""
+
+    ROWS = [{"month": "2025-01", "total": Decimal("1462.66")}]
+
+    def test_a_fabricated_small_percentage_is_flagged(self):
+        assert find_ungrounded_numbers(
+            "The profit margin was 8%.", self.ROWS
+        ) == ["8%"]
+
+    def test_a_fabricated_small_currency_amount_is_flagged(self):
+        assert find_ungrounded_numbers(
+            "Each order averaged $8.", self.ROWS
+        ) == ["$8"]
+
+    def test_a_bare_small_integer_is_still_structural(self):
+        assert (
+            find_ungrounded_numbers("Q4 had the top 5 months.", self.ROWS)
+            == []
+        )
+
+    def test_a_year_does_not_ground_a_percentage(self):
+        """"Up 2025%" must not pass just because 2025 is in the question."""
+
+        assert find_ungrounded_numbers(
+            "Sales were up 2025%.",
+            self.ROWS,
+            context=("sales in 2025",),
+        ) == ["2025%"]
+
+    def test_a_fraction_supports_the_same_figure_as_a_percentage(self):
+        """discount_pct of 0.125 legitimately supports "12.5%"."""
+
+        rows = [
+            {"promotion": "Seasonal", "avg_discount": Decimal("0.125")},
+            {"promotion": "Clearance", "avg_discount": Decimal("0.0834")},
+        ]
+
+        assert (
+            find_ungrounded_numbers(
+                "Seasonal discounted 12.5%, Clearance 8.34%.", rows
+            )
+            == []
+        )
+
+
+class TestCalendarDatesAreNotMeasurements:
+    """Found in production: "December 31, 2025" reported the token "31,"."""
+
+    ROWS = [{"total_profit": Decimal("13866.1")}]
+
+    def test_a_spelled_out_date_is_clean(self):
+        assert (
+            find_ungrounded_numbers(
+                "As of December 31, 2025 profit was 13866.1.",
+                self.ROWS,
+                context=("profit in 2025",),
+            )
+            == []
+        )
+
+    def test_a_day_before_a_month_is_clean(self):
+        assert (
+            find_ungrounded_numbers(
+                "Measured on 15 March, profit was 13866.1.",
+                self.ROWS,
+                context=("profit",),
+            )
+            == []
+        )
+
+    def test_no_token_ever_ends_in_a_comma(self):
+        from src.analysis_guard import extract_number_tokens
+
+        tokens = extract_number_tokens("On December 31, 2025 we saw 1,462.66")
+
+        assert all(not token.text.endswith(",") for token in tokens)
+
+    def test_a_similar_number_away_from_a_month_is_still_checked(self):
+        assert find_ungrounded_numbers(
+            "We shipped 31 pallets.", self.ROWS
+        ) == ["31"]
+
+
+class TestUnparseableForms:
+    def test_scientific_notation_is_reported_not_silently_split(self):
+        """1.2e9 would otherwise tokenise to a harmless-looking 1.2."""
+
+        rows = [{"v": Decimal("1.2")}]
+
+        assert find_ungrounded_numbers("Revenue hit 1.2e9.", rows) == ["1.2"]
+
+
+class TestContiguousEnumerationIsTight:
+    """The subtotal set must be exactly the adjacent runs, nothing wider.
+
+    An audit widened _contiguous_sums by one and no test noticed. A loose
+    enumeration silently grounds fabricated values.
+    """
+
+    def test_the_enumerated_set_is_exactly_the_adjacent_runs(self):
+        from src.analysis_guard import _contiguous_sums
+
+        values = [Decimal("1"), Decimal("2"), Decimal("4"), Decimal("8")]
+
+        # Runs of length >= 2 only; single cells are already grounded.
+        expected = {
+            Decimal("3"),   # 1+2
+            Decimal("6"),   # 2+4
+            Decimal("12"),  # 4+8
+            Decimal("7"),   # 1+2+4
+            Decimal("14"),  # 2+4+8
+            Decimal("15"),  # 1+2+4+8
+        }
+
+        assert _contiguous_sums(values) == expected
+
+    def test_single_values_are_not_included(self):
+        from src.analysis_guard import _contiguous_sums
+
+        sums = _contiguous_sums([Decimal("5"), Decimal("9")])
+
+        assert sums == {Decimal("14")}
+
+    def test_an_off_by_one_sum_is_not_grounded(self):
+        """Values above the structural-integer ceiling, so both are checked."""
+
+        rows = [{"v": Decimal("100")}, {"v": Decimal("250")}]
+
+        # 350 is the real subtotal; 351 must not be accepted.
+        assert find_ungrounded_numbers("The pair totalled 350.", rows) == []
+        assert find_ungrounded_numbers(
+            "The pair totalled 351.", rows
+        ) == ["351"]

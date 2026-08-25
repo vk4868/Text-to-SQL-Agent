@@ -133,12 +133,14 @@ class ResultAnalyzer:
             rows_were_truncated=rows_were_truncated,
             llm_response=llm_response,
             contract_violations=validate_analysis_structure(analysis),
-            # The question and SQL are context, not inventions: a year or a
-            # "top 5" the model was handed must not be reported back as one.
+            # Only the question grounds the prose. The SQL is deliberately
+            # NOT passed: it is the same untrusted model output being
+            # checked, so a model could otherwise launder a fabricated
+            # figure by first writing it into its own WHERE clause.
             ungrounded_numbers=find_ungrounded_numbers(
                 analysis,
                 rows_for_analysis,
-                context=(question, sql),
+                context=(question,),
             ),
         )
 

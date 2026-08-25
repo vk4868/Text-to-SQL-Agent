@@ -148,3 +148,52 @@ class TestEndToEndRendering:
 
         assert "ERROR at stage 'sql_generation'" in rendered
         assert "model is down" in rendered
+
+
+class TestChecksSurviveTheRunRecordBoundary:
+    """Both checks must reach the durable record, not just the analyzer.
+
+    An audit mutation dropped contract_violations at the analysis_metadata ->
+    run_record boundary and nothing failed; ungrounded_numbers was covered but
+    its sibling was not.
+    """
+
+    def test_contract_violations_reach_the_record(self):
+        # Well-formed apart from a missing LIMITATIONS section.
+        analysis = WELL_FORMED_ANALYSIS.replace(
+            "LIMITATIONS:\nNone identified from the supplied result.", ""
+        )
+
+        agent = make_agent(
+            bigquery_service=FakeBigQueryService(),
+            llm=ScriptedLLMClient([data.VALID_SQL, analysis]),
+        )
+
+        record = agent.run("What were net sales by month?")
+
+        violations = record["analysis"]["contract_violations"]
+
+        assert violations, (
+            "contract_violations did not survive into the run record"
+        )
+        assert any("LIMITATIONS" in item for item in violations)
+        assert record["analysis"]["is_grounded"] is False
+
+    def test_contract_violations_reach_the_terminal(self):
+        analysis = WELL_FORMED_ANALYSIS.replace(
+            "SUGGESTED FOLLOW-UP:\nBreak the same period down by product "
+            "category.",
+            "",
+        )
+
+        agent = make_agent(
+            bigquery_service=FakeBigQueryService(),
+            llm=ScriptedLLMClient([data.VALID_SQL, analysis]),
+        )
+
+        rendered = format_run_for_terminal(
+            agent.run("What were net sales by month?")
+        )
+
+        assert "FORMAT:" in rendered
+        assert "SUGGESTED FOLLOW-UP" in rendered
