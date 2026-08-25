@@ -24,7 +24,13 @@ uv run python main.py "..." --sql-only    # just the SQL
 **Two kinds of test live here, and they are not the same thing:**
 
 - `tests/` is a real pytest suite. Fully hermetic — autouse fixtures make constructing a live `bigquery.Client` or `ollama.Client` raise, and redirect logs into `tmp_path`. It must pass with credentials removed and Ollama unreachable.
-- The `test_*.py` scripts **at the repo root** are legacy print-only smoke scripts with a `main()`, run individually (`uv run python test_sql_validator.py`). `[tool.pytest.ini_options] testpaths = ["tests"]` in `pyproject.toml` keeps pytest from collecting them — that setting is load-bearing, since several make live BigQuery calls at import.
+- `scripts/smoke/smoke_*.py` are print-only live demos, **run as modules** so the repo root is on the path:
+
+  ```bash
+  uv run python -m scripts.smoke.smoke_insights_graph
+  ```
+
+  Running them by path fails with `ModuleNotFoundError: No module named 'src'`. They are named `smoke_*` rather than `test_*` precisely so pytest can never collect them; `[tool.pytest.ini_options] testpaths = ["tests"]` is a second guard, and it is load-bearing — several make live BigQuery calls at import.
 
 Live smoke scripts get their collaborators from `scripts/smoke/_wiring.py::build_live_nodes()`. Never construct `InsightsGraphNodes` inline in a script: all five collaborators are keyword-only and required, and six scripts once passed subsets and died with `TypeError` before reaching what they meant to test.
 
@@ -91,8 +97,21 @@ Two record types in `logs/runs.jsonl`, linked by id:
 
 `run_id` ⊂ `graph_run_id`. Raw prompts, raw model output and result rows are **deliberately excluded** from the durable record; rows go in the return value only.
 
+### Checking the prose
+
+`src/analysis_guard.py` is the other half of the untrusted-LLM principle: every figure in the written analysis must be present in the rows, a bounded derivation of them (column aggregate, contiguous subtotal, difference, share of total, fraction-as-percentage, row count), or a number the **question** contained.
+
+Two rules keep it honest, and both have tests:
+
+- **The generated SQL is never passed as grounding context.** It is the same untrusted output being checked, so a model could otherwise launder a fabrication through its own `WHERE` clause.
+- **Only claim-bearing sections are checked.** `LIMITATIONS` and `SUGGESTED FOLLOW-UP` are asked by the prompt to discuss data outside the result, so figures there are proposals.
+
+It checks values, not attributions — see the README's limitations section before extending it.
+
+### Documentation
+
+`tests/unit/test_docs_claims.py` asserts every path and `python -m` command in the docs exists, and that no doc describes a deleted component as current. Docs went stale once; that test is why they should not again.
+
 ### Current state
 
-Phases 0 and 7 complete and independently verified. Working on Phases 8–10 per the plan: business insights (analysis contract, zero-row handling, numeric grounding guard), then observability/governance/evaluation, then portfolio prep.
-
-**`README.md` and `PIPELINE.md` are stale** — they still describe LangGraph as unused and the imperative pipelines as live. Both are Phase 10 rewrites. Trust the code and this file; treat those two as historical until then.
+Phases 0 and 7–10 complete, each independently verified by an audit that mutation-tested the suite. Evaluation: 11/15 (73%), 19/19 adversarial queries refused, 362 hermetic tests.
