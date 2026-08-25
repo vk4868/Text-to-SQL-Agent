@@ -17,6 +17,8 @@ QUESTION already contained. Anything else is reported.
   quarter or period total is over an ordered result
 - a fraction rendered as a percentage, so a `discount_pct` of 0.125 supports
   "12.5%"
+- a share of the column total, which is what "the Northeast and West account
+  for 58.6% of net revenue" is — the most common percentage in an analysis
 - the difference between any two values in a column, which is what "the
   Northeast exceeded the West by 168.83" is
 - the row count
@@ -37,14 +39,21 @@ Only the claim-bearing sections are checked. LIMITATIONS and SUGGESTED
 FOLLOW-UP are asked by the prompt to discuss data that is not in the result,
 so figures there are proposals rather than assertions.
 
-A figure introduced by a hedge — "over 14,500", "roughly $1,463" — is
-matched with a 1% relative tolerance, because the model is explicitly not
-claiming precision. A hedge licenses rounding, not invention: "approximately
+A hedged figure is judged as the claim it actually makes. "over 58%" is a
+lower bound, satisfied by a real 58.6%. "roughly $1,463" is an approximation,
+matched within 1%. A hedge licenses rounding, not invention: "approximately
 24,000" against a real 24,800 is 3% out and is still reported.
 
-Known limitations, all of which cause over-reporting rather than silence:
-ratios ("4.5 times greater") and means over a subset are not enumerated, so a
-model that computes one is reported. A flag
+This module checks VALUES, not ATTRIBUTIONS. It can tell you that 87.3%
+exists somewhere in the result; it cannot tell you the model attached it to
+the right row. "Online is over 80% of revenue" passes when Online is 28% but
+In-Store plus Online is 87%, because the figure is real even though the
+sentence is wrong. Catching that would require parsing the claim, not the
+number.
+
+Known limitations that cause over-reporting rather than silence: ratios
+("4.5 times greater") and means over a subset are not enumerated, so a model
+that computes one is reported. A flag
 therefore means "not mechanically derivable from the result", which is a
 prompt to check — not proof of a lie. In the other direction, the grounded
 set grows with the result, so on integer-valued data a fabricated value can
@@ -85,12 +94,25 @@ _MONTH_AFTER = re.compile(rf"^(?:st|nd|rd|th)?[\s,]+(?:{_MONTHS})\b", re.IGNOREC
 
 CALENDAR_DAY_CEILING = 31
 
-#: Words that mark the following number as an approximation rather than an
-#: exact claim: "over 14,500" is a true statement about 14,544.01.
-_HEDGE = re.compile(
+#: Words marking the following number as an approximation rather than an
+#: exact claim: "roughly $1,463" about a real 1462.66.
+_HEDGE_APPROX = re.compile(
     r"\b(?:about|approximately|approx\.?|roughly|around|nearly|almost|"
-    r"over|under|above|below|more than|less than|at least|at most|"
-    r"upwards of|circa|~)\s*\$?\s*$",
+    r"circa|~)\s*\$?\s*$",
+    re.IGNORECASE,
+)
+
+#: Words making the number a lower bound: "over 58%" of a real 58.6% is true.
+_HEDGE_AT_LEAST = re.compile(
+    r"\b(?:over|above|more than|greater than|at least|upwards of|"
+    r"exceeding|in excess of)\s*\$?\s*$",
+    re.IGNORECASE,
+)
+
+#: Words making the number an upper bound.
+_HEDGE_AT_MOST = re.compile(
+    r"\b(?:under|below|less than|fewer than|at most|no more than)"
+    r"\s*\$?\s*$",
     re.IGNORECASE,
 )
 
@@ -98,6 +120,10 @@ _HEDGE = re.compile(
 #: not invention: "approximately 24,000" against a real 24,800 is 3% out and
 #: is still reported.
 HEDGED_RELATIVE_TOLERANCE = Decimal("0.01")
+
+#: How far past a stated bound a value may sit and still be taken as the
+#: quantity that bound describes.
+HEDGE_BOUND_FACTOR = Decimal("1.5")
 
 #: Bare whole numbers at or below this are treated as structural rather than
 #: factual — "two to four insights", "Q4", "the top 5". A number carrying a
@@ -120,7 +146,7 @@ class NumberToken:
         "has_currency",
         "suspect",
         "is_calendar_day",
-        "is_hedged",
+        "hedge",
     )
 
     def __init__(
@@ -132,7 +158,7 @@ class NumberToken:
         has_currency: bool = False,
         suspect: bool = False,
         is_calendar_day: bool = False,
-        is_hedged: bool = False,
+        hedge: str = "",
     ) -> None:
         self.text = text
         self.value = value
@@ -142,7 +168,8 @@ class NumberToken:
         # faithfully, such as scientific notation.
         self.suspect = suspect
         self.is_calendar_day = is_calendar_day
-        self.is_hedged = is_hedged
+        # "", "approx", "at_least" or "at_most".
+        self.hedge = hedge
 
     @property
     def has_unit(self) -> bool:
@@ -150,6 +177,18 @@ class NumberToken:
 
     def __repr__(self) -> str:  # pragma: no cover - debugging aid
         return f"NumberToken({self.text!r}, {self.value})"
+
+
+def _classify_hedge(head: str) -> str:
+    """Return which kind of hedge, if any, introduces the next number."""
+
+    if _HEDGE_AT_LEAST.search(head):
+        return "at_least"
+    if _HEDGE_AT_MOST.search(head):
+        return "at_most"
+    if _HEDGE_APPROX.search(head):
+        return "approx"
+    return ""
 
 
 def _to_decimal(raw: str) -> Decimal | None:
@@ -192,7 +231,7 @@ def extract_number_tokens(text: str) -> list[NumberToken]:
                 is_percent=bool(match.group("percent")),
                 has_currency=bool(match.group("currency")),
                 suspect=bool(_EXPONENT.match(tail)),
-                is_hedged=bool(_HEDGE.search(head)),
+                hedge=_classify_hedge(head),
                 is_calendar_day=(
                     near_month
                     and not match.group("percent")
@@ -278,6 +317,33 @@ def _pairwise_differences(
     return differences
 
 
+def build_share_percentages(rows: list[dict[str, Any]]) -> set[Decimal]:
+    """Return every value expressed as a percentage of its column total.
+
+    "X accounts for 58.6% of the total" is the percentage an analyst reaches
+    for most often. Shares of individual cells and of contiguous subtotals
+    are both included, since "these three regions are 58% of revenue" is as
+    natural as "this one region is 30%".
+    """
+
+    shares: set[Decimal] = set()
+
+    for values in _numeric_cells(rows).values():
+        total = sum(values, Decimal(0))
+
+        if not total:
+            continue
+
+        parts = set(values) | _contiguous_sums(values)
+
+        for part in parts:
+            shares.add(
+                (part / total * 100).quantize(Decimal("0.01"))
+            )
+
+    return shares
+
+
 def build_measured_values(rows: list[dict[str, Any]]) -> set[Decimal]:
     """Return values that are genuinely measurements, not text fragments.
 
@@ -352,16 +418,34 @@ def _matches(
     candidates: set[Decimal],
     tolerance: Decimal,
     *,
-    relative_tolerance: Decimal | None = None,
+    hedge: str = "",
 ) -> bool:
     if value in candidates:
         return True
 
+    # A bound must be satisfied by a value that is plausibly the quantity
+    # being described. Without the upper limit, "over 80%" would be satisfied
+    # by any larger number anywhere in the result.
+    if hedge == "at_least":
+        # "over 58%" is satisfied by a real 58.64%, not by an unrelated
+        # larger figure.
+        return any(
+            value <= candidate <= value * HEDGE_BOUND_FACTOR
+            for candidate in candidates
+        )
+
+    if hedge == "at_most":
+        return any(
+            value / HEDGE_BOUND_FACTOR <= candidate <= value
+            for candidate in candidates
+        )
+
     allowed = tolerance
 
-    if relative_tolerance is not None:
-        # A hedged figure is allowed to be a rounded version of a real one.
-        allowed = max(tolerance, abs(value) * relative_tolerance)
+    if hedge == "approx":
+        # An approximation may be a rounded version of a real value, but a
+        # hedge licenses rounding rather than invention.
+        allowed = max(tolerance, abs(value) * HEDGED_RELATIVE_TOLERANCE)
 
     return any(
         abs(value - candidate) <= allowed for candidate in candidates
@@ -396,7 +480,11 @@ def find_ungrounded_numbers(
     # A fraction in the data supports the same figure stated as a percentage,
     # but only a measured value can — not a year scraped from a date string.
     measured = build_measured_values(rows)
-    percent_values = {value * 100 for value in measured} | measured
+    percent_values = (
+        {value * 100 for value in measured}
+        | measured
+        | build_share_percentages(rows)
+    )
 
     ungrounded: list[str] = []
     seen: set[tuple[Decimal, bool]] = set()
@@ -431,12 +519,7 @@ def find_ungrounded_numbers(
             candidates = data_values | question_values
 
         if _matches(
-            token.value,
-            candidates,
-            tolerance,
-            relative_tolerance=(
-                HEDGED_RELATIVE_TOLERANCE if token.is_hedged else None
-            ),
+            token.value, candidates, tolerance, hedge=token.hedge
         ):
             continue
 

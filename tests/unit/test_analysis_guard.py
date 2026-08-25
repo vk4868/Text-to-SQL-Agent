@@ -759,12 +759,94 @@ class TestHedgedApproximations:
     @pytest.mark.parametrize(
         "hedge",
         ["about", "approximately", "roughly", "around", "nearly",
-         "over", "under", "more than", "at least"],
+         "over", "more than", "at least"],
     )
     def test_common_hedges_are_recognised(self, hedge):
         assert (
             find_ungrounded_numbers(
                 f"Revenue was {hedge} 14,500.", self.ROWS
+            )
+            == []
+        )
+
+    def test_an_upper_bound_the_data_contradicts_is_reported(self):
+        """Combined revenue is 14,544.01, so "under 14,500" is false."""
+
+        assert find_ungrounded_numbers(
+            "Revenue was under 14,500.", self.ROWS
+        ) == ["14,500"]
+
+
+class TestShareAndBoundSemantics:
+    """Shares of a total, and hedges judged as the claim they make."""
+
+    REGIONS = [
+        {"region": "Northeast", "v": Decimal("7356.42")},
+        {"region": "West", "v": Decimal("7187.59")},
+        {"region": "Midwest", "v": Decimal("5872.03")},
+        {"region": "South", "v": Decimal("4384.61")},
+    ]
+    CHANNELS = [
+        {"channel": "In-Store", "v": Decimal("14602.22")},
+        {"channel": "Online", "v": Decimal("7046.20")},
+        {"channel": "Click-and-Collect", "v": Decimal("3152.23")},
+    ]
+
+    def test_a_single_share_of_total_is_accepted(self):
+        # 7356.42 / 24800.65 = 29.66%
+        assert (
+            find_ungrounded_numbers(
+                "Northeast alone is 29.66% of revenue.", self.REGIONS
+            )
+            == []
+        )
+
+    def test_a_subtotal_share_is_accepted(self):
+        # (7356.42 + 7187.59) / 24800.65 = 58.64%
+        assert (
+            find_ungrounded_numbers(
+                "The Northeast and West are 58.64% of revenue.",
+                self.REGIONS,
+            )
+            == []
+        )
+
+    def test_a_true_lower_bound_is_accepted(self):
+        """"over 58%" is satisfied by a real 58.64%."""
+
+        assert (
+            find_ungrounded_numbers(
+                "They account for over 58% of revenue.", self.REGIONS
+            )
+            == []
+        )
+
+    def test_a_wrong_share_is_reported(self):
+        """Online is 28.4%; a claimed 48% is a real error from a live run."""
+
+        assert find_ungrounded_numbers(
+            "Online represents approximately 48% of revenue.",
+            self.CHANNELS,
+        ) == ["48%"]
+
+    def test_a_bound_is_not_satisfied_by_an_unrelated_larger_value(self):
+        """Without an upper limit any bigger number would satisfy it."""
+
+        assert find_ungrounded_numbers(
+            "Revenue was over 100.", self.REGIONS
+        ) == ["100"]
+
+    def test_the_guard_checks_values_not_attributions(self):
+        """A documented limitation, pinned so it stays a known one.
+
+        "Online is over 80%" passes because In-Store plus Online really is
+        87.3%. The figure exists; the sentence attaches it to the wrong
+        entity, which needs claim parsing rather than number checking.
+        """
+
+        assert (
+            find_ungrounded_numbers(
+                "Online is over 80% of revenue.", self.CHANNELS
             )
             == []
         )
