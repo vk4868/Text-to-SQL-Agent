@@ -1,7 +1,7 @@
 from src import bigquery_service
 from src.bigquery_service import BigQueryService
 from src.graph.builder import build_schema_graph
-from src.graph.nodes import InsightsGraphNodes
+from scripts.smoke._wiring import build_live_nodes
 from src.graph.state import AgentState
 from src.schema_config import RELATIONSHIPS
 from src.schema_provider import SchemaProvider
@@ -14,9 +14,7 @@ def main() -> None:
         relationships=RELATIONSHIPS
     )
 
-    nodes = InsightsGraphNodes(
-        schema_provider = schema_provider
-    )
+    nodes = build_live_nodes()
 
     graph = build_schema_graph(
         nodes = nodes

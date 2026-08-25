@@ -2,7 +2,7 @@ from src.bigquery_service import BigQueryService
 from src.graph.builder import (
     build_sql_execution_graph,
 )
-from src.graph.nodes import InsightsGraphNodes
+from scripts.smoke._wiring import build_live_nodes
 from src.graph.state import AgentState
 from src.llm.ollama_client import OllamaGemmaClient
 from src.schema_config import RELATIONSHIPS
@@ -31,11 +31,7 @@ def main() -> None:
         bigquery_service=bigquery_service,
     )
 
-    nodes = InsightsGraphNodes(
-        schema_provider=schema_provider,
-        sql_generator=sql_generator,
-        sql_execution_pipeline=sql_execution_pipeline,
-    )
+    nodes = build_live_nodes()
 
     graph = build_sql_execution_graph(
         nodes=nodes,

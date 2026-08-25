@@ -2,48 +2,16 @@ from unittest.mock import patch
 
 from src.bigquery_service import BigQueryService
 from src.graph.builder import build_sql_repair_graph
-from src.graph.nodes import InsightsGraphNodes
+from scripts.smoke._wiring import build_live_nodes
 from src.graph.state import AgentState
 from src.llm.base import LLMResponse
-from src.llm.ollama_client import OllamaGemmaClient
-from src.schema_config import RELATIONSHIPS
-from src.schema_provider import SchemaProvider
-from src.sql_execution_pipeline import SQLExecutionPipeline
-from src.sql_generator import (
-    SQLGenerationResult,
-    SQLGenerator,
-)
-from src.sql_repairer import SQLRepairer
+from src.sql_generator import SQLGenerationResult
 
 
 def main() -> None:
     bigquery_service = BigQueryService()
 
-    llm = OllamaGemmaClient()
-
-    schema_provider = SchemaProvider(
-        bigquery_service=bigquery_service,
-        relationships=RELATIONSHIPS,
-    )
-
-    sql_generator = SQLGenerator(
-        llm=llm,
-    )
-
-    sql_repairer = SQLRepairer(
-        llm=llm,
-    )
-
-    sql_execution_pipeline = SQLExecutionPipeline(
-        bigquery_service=bigquery_service,
-    )
-
-    nodes = InsightsGraphNodes(
-        schema_provider=schema_provider,
-        sql_generator=sql_generator,
-        sql_execution_pipeline=sql_execution_pipeline,
-        sql_repairer=sql_repairer,
-    )
+    nodes = build_live_nodes(bigquery_service=bigquery_service)
 
     graph = build_sql_repair_graph(
         nodes=nodes,
@@ -89,7 +57,7 @@ def main() -> None:
     }
 
     with patch.object(
-        sql_generator,
+        nodes.sql_generator,
         "generate",
         return_value=fake_generation_result,
     ):
