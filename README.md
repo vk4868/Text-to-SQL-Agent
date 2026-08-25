@@ -241,6 +241,10 @@ uv run python main.py "What were total net sales by month in 2025?"
 uv run python main.py "..." --trace       # per-node timings
 uv run python main.py "..." --json        # the full run record
 uv run python main.py "..." --sql-only    # just the SQL
+
+uv run streamlit run app.py               # web UI
+uv run python scripts/demo.py             # a 90-second live demo
+uv run python scripts/demo.py --guardrails-only   # the model-free part
 ```
 
 Everything is configurable via `.env` or the environment — see `src/config.py`. The safety-relevant defaults:

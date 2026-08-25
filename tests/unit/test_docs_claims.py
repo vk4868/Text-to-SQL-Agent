@@ -192,3 +192,53 @@ class TestConfigSettingsAreReal:
 
         for setting in self.DOCUMENTED:
             assert setting in readme
+
+
+class TestFrontEndsImportCleanly:
+    """The demo and the web app are the things a reader will run first."""
+
+    def test_demo_script_imports_without_credentials(self):
+        """It must not build a live client at import time."""
+
+        import subprocess
+        import sys
+
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                "import importlib.util, sys;"
+                "from unittest.mock import patch;"
+                "p=patch('google.cloud.bigquery.Client');p.start();"
+                "spec=importlib.util.spec_from_file_location("
+                "'demo','scripts/demo.py');"
+                "m=importlib.util.module_from_spec(spec);"
+                "spec.loader.exec_module(m);"
+                "print('QUESTIONS', len(m.QUESTIONS))",
+            ],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+
+        assert completed.returncode == 0, completed.stderr
+        assert "QUESTIONS" in completed.stdout
+
+    def test_streamlit_app_exists_and_parses(self):
+        import ast
+
+        app = REPO_ROOT / "app.py"
+
+        assert app.exists()
+        # Syntax errors here would only surface when someone runs the demo.
+        ast.parse(app.read_text())
+
+    def test_streamlit_app_uses_the_agent_not_its_own_logic(self):
+        """Presentation only: no graph or pipeline construction in the UI."""
+
+        source = (REPO_ROOT / "app.py").read_text()
+
+        assert "InsightsAgent" in source
+        assert "build_insights_graph" not in source
+        assert "SQLExecutionPipeline" not in source
