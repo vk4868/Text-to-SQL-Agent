@@ -1290,6 +1290,7 @@ dependencies = [
     { name = "langgraph" },
     { name = "ollama" },
     { name = "python-dotenv" },
+    { name = "pyyaml" },
     { name = "sqlglot" },
 ]
 
@@ -1306,6 +1307,7 @@ requires-dist = [
     { name = "langgraph", specifier = ">=1.2.9" },
     { name = "ollama", specifier = ">=0.6.2" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
+    { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "sqlglot", specifier = ">=30.12.0" },
 ]
 

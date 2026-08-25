@@ -1,0 +1,145 @@
+# Adversarial SQL fed directly into SQLExecutionPipeline.execute().
+#
+# No LLM and no question: these prove the guardrails hold regardless of what
+# produced the SQL. Every case must be refused before a byte is scanned —
+# stages 1 to 3 are pure parsing, so nothing here ever reaches BigQuery.
+#
+# `stage` is the guardrail expected to refuse it. `status` distinguishes a
+# policy refusal (rejected) from a failure (error).
+
+- case_id: delete_all_rows
+  description: Outright data destruction.
+  sql: DELETE FROM `sql-bigquery-502206.business_insights.fact_sales` WHERE TRUE
+  expect: {status: rejected, stage: validation}
+
+- case_id: drop_table
+  description: DDL disguised as a query.
+  sql: DROP TABLE `sql-bigquery-502206.business_insights.fact_sales`
+  expect: {status: rejected, stage: validation}
+
+- case_id: truncate_table
+  description: Bulk delete by another name.
+  sql: TRUNCATE TABLE `sql-bigquery-502206.business_insights.fact_sales`
+  expect: {status: rejected, stage: validation}
+
+- case_id: update_rows
+  description: Silent data corruption rather than destruction.
+  sql: >
+    UPDATE `sql-bigquery-502206.business_insights.fact_sales`
+    SET net_revenue = 0 WHERE TRUE
+  expect: {status: rejected, stage: validation}
+
+- case_id: insert_rows
+  description: Injecting fabricated records.
+  sql: >
+    INSERT INTO `sql-bigquery-502206.business_insights.fact_sales`
+    (sale_id) VALUES ('x')
+  expect: {status: rejected, stage: validation}
+
+- case_id: merge_statement
+  description: MERGE both reads and writes, so it must not pass as a read.
+  sql: >
+    MERGE `sql-bigquery-502206.business_insights.fact_sales` T
+    USING `sql-bigquery-502206.business_insights.dim_products` S
+    ON T.product_id = S.product_id
+    WHEN MATCHED THEN UPDATE SET T.quantity = 0
+  expect: {status: rejected, stage: validation}
+
+- case_id: create_view
+  description: Creating objects inside the dataset.
+  sql: >
+    CREATE VIEW `sql-bigquery-502206.business_insights.v` AS
+    SELECT 1 AS x
+  expect: {status: rejected, stage: validation}
+
+- case_id: stacked_statements
+  description: Classic injection — a valid SELECT followed by a DROP.
+  sql: >
+    SELECT 1;
+    DROP TABLE `sql-bigquery-502206.business_insights.fact_sales`
+  expect: {status: rejected, stage: validation}
+
+- case_id: stacked_delete_after_select
+  description: The payload hidden behind a legitimate-looking query.
+  sql: >
+    SELECT sale_id FROM `sql-bigquery-502206.business_insights.fact_sales`;
+    DELETE FROM `sql-bigquery-502206.business_insights.fact_sales` WHERE TRUE
+  expect: {status: rejected, stage: validation}
+
+- case_id: malformed_sql
+  description: A parse error must be a clean refusal, not a crash.
+  sql: SELECT FROM WHERE GROUP
+  expect: {status: rejected, stage: validation}
+
+- case_id: empty_sql
+  description: Nothing at all.
+  sql: "   "
+  expect: {status: rejected, stage: validation}
+
+- case_id: foreign_project
+  description: Reading a dataset outside the sandbox entirely.
+  sql: >
+    SELECT COUNT(*) AS n
+    FROM `bigquery-public-data.samples.natality`
+  expect: {status: rejected, stage: table_access}
+
+- case_id: foreign_dataset_same_project
+  description: The right project but a dataset that was never approved.
+  sql: >
+    SELECT COUNT(*) AS n
+    FROM `sql-bigquery-502206.finance_private.salaries`
+  expect: {status: rejected, stage: table_access}
+
+- case_id: unknown_table_in_allowed_dataset
+  description: A plausible table name that does not exist.
+  sql: >
+    SELECT COUNT(*) AS n
+    FROM `sql-bigquery-502206.business_insights.customer_secrets`
+  expect: {status: rejected, stage: table_access}
+
+- case_id: unqualified_table
+  description: >
+    An unqualified name would resolve against whatever default the session
+    happens to carry, so it must never be allowed.
+  sql: SELECT COUNT(*) AS n FROM fact_sales
+  expect: {status: rejected, stage: table_access}
+
+- case_id: foreign_table_hidden_in_a_join
+  description: One allowed table plus one that is not.
+  sql: >
+    SELECT f.sale_id
+    FROM `sql-bigquery-502206.business_insights.fact_sales` AS f
+    JOIN `bigquery-public-data.samples.natality` AS n
+    ON f.quantity = n.year
+  expect: {status: rejected, stage: table_access}
+
+- case_id: foreign_table_hidden_in_a_subquery
+  description: Nesting must not hide a table from the AST walk.
+  sql: >
+    SELECT sale_id
+    FROM `sql-bigquery-502206.business_insights.fact_sales`
+    WHERE quantity IN (
+      SELECT year FROM `bigquery-public-data.samples.natality`
+    )
+  expect: {status: rejected, stage: table_access}
+
+- case_id: cte_shadowing_an_allowed_table
+  description: >
+    A CTE named like a real table must be recognised as a CTE, while a
+    genuinely foreign table in the same query is still caught.
+  sql: >
+    WITH fact_sales AS (
+      SELECT year FROM `bigquery-public-data.samples.natality`
+    )
+    SELECT COUNT(*) AS n FROM fact_sales
+  expect: {status: rejected, stage: table_access}
+
+- case_id: parameterised_limit
+  description: >
+    A LIMIT the pipeline cannot reason about is refused rather than assumed
+    safe — the row bound must be provably enforced.
+  sql: >
+    SELECT sale_id
+    FROM `sql-bigquery-502206.business_insights.fact_sales`
+    LIMIT @row_count
+  expect: {status: rejected, stage: result_limit}

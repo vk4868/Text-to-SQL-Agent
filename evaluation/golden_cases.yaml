@@ -1,0 +1,301 @@
+# Golden questions with a hand-written reference query.
+#
+# Scoring is execution accuracy: the agent's result set is compared to the
+# reference query's result set by VALUE, not by column name or SQL text. The
+# agent is free to alias columns, order joins, or phrase the query however it
+# likes, as long as the numbers come out right. This is the Spider/BIRD
+# metric, and it is why no LLM judge is needed.
+#
+# Cases are drawn from the patterns deliberately embedded in the dataset
+# (see Datasets/DATA_DICTIONARY.md), so a correct answer is checkable and a
+# wrong one is meaningful rather than arbitrary.
+#
+# comparison:
+#   multiset - order-insensitive; the default, since ORDER BY is usually
+#              unstated in the question
+#   ordered  - order matters, for "top N" style questions
+#   scalar   - a single value
+
+- case_id: net_sales_by_month_2025
+  question: What were total net sales by month in 2025?
+  category: time_series_aggregation
+  difficulty: easy
+  notes: The canonical question. Exercises partition pruning on sale_date.
+  expect:
+    referenced_tables: ["sql-bigquery-502206.business_insights.fact_sales"]
+    must_use_columns: [net_revenue, sale_date]
+    reference_sql: |
+      SELECT
+        FORMAT_DATE('%Y-%m', sale_date) AS month,
+        SUM(net_revenue) AS total_net_sales
+      FROM `sql-bigquery-502206.business_insights.fact_sales`
+      WHERE sale_date BETWEEN '2025-01-01' AND '2025-12-31'
+      GROUP BY month
+      ORDER BY month
+    comparison: multiset
+
+- case_id: total_net_sales_2025
+  question: What were total net sales in 2025?
+  category: aggregation
+  difficulty: easy
+  expect:
+    referenced_tables: ["sql-bigquery-502206.business_insights.fact_sales"]
+    must_use_columns: [net_revenue]
+    reference_sql: |
+      SELECT SUM(net_revenue) AS total_net_sales
+      FROM `sql-bigquery-502206.business_insights.fact_sales`
+      WHERE sale_date BETWEEN '2025-01-01' AND '2025-12-31'
+    comparison: scalar
+
+- case_id: total_profit_2025
+  question: What was the total profit in 2025?
+  category: aggregation
+  difficulty: easy
+  notes: >
+    Tests the "profit" -> profit_amount mapping. A model that computes
+    revenue minus cost by hand should still land on the same number.
+  expect:
+    referenced_tables: ["sql-bigquery-502206.business_insights.fact_sales"]
+    must_use_columns: [profit_amount]
+    reference_sql: |
+      SELECT SUM(profit_amount) AS total_profit
+      FROM `sql-bigquery-502206.business_insights.fact_sales`
+      WHERE sale_date BETWEEN '2025-01-01' AND '2025-12-31'
+    comparison: scalar
+
+- case_id: profit_by_category_2025
+  question: Which product category generated the most profit in 2025?
+  category: join
+  difficulty: medium
+  notes: Requires the fact-to-product join; category lives only on the dimension.
+  expect:
+    referenced_tables:
+      - sql-bigquery-502206.business_insights.fact_sales
+      - sql-bigquery-502206.business_insights.dim_products
+    must_use_columns: [profit_amount, category]
+    reference_sql: |
+      SELECT
+        p.category,
+        SUM(f.profit_amount) AS total_profit
+      FROM `sql-bigquery-502206.business_insights.fact_sales` AS f
+      JOIN `sql-bigquery-502206.business_insights.dim_products` AS p
+        ON f.product_id = p.product_id
+      WHERE f.sale_date BETWEEN '2025-01-01' AND '2025-12-31'
+      GROUP BY p.category
+      ORDER BY total_profit DESC
+      LIMIT 1
+    comparison: ordered
+
+- case_id: top_5_products_by_revenue_2025
+  question: What were the top 5 products by net revenue in 2025?
+  category: ranking
+  difficulty: medium
+  expect:
+    referenced_tables:
+      - sql-bigquery-502206.business_insights.fact_sales
+      - sql-bigquery-502206.business_insights.dim_products
+    must_use_columns: [net_revenue, product_name]
+    reference_sql: |
+      SELECT
+        p.product_name,
+        SUM(f.net_revenue) AS total_net_revenue
+      FROM `sql-bigquery-502206.business_insights.fact_sales` AS f
+      JOIN `sql-bigquery-502206.business_insights.dim_products` AS p
+        ON f.product_id = p.product_id
+      WHERE f.sale_date BETWEEN '2025-01-01' AND '2025-12-31'
+      GROUP BY p.product_name
+      ORDER BY total_net_revenue DESC
+      LIMIT 5
+    comparison: ordered
+
+- case_id: revenue_by_region_2025
+  question: How did net revenue break down by branch region in 2025?
+  category: aggregation
+  difficulty: easy
+  notes: branch_region is denormalised onto the fact, so no join is needed.
+  expect:
+    referenced_tables: ["sql-bigquery-502206.business_insights.fact_sales"]
+    must_use_columns: [net_revenue, branch_region]
+    reference_sql: |
+      SELECT
+        branch_region,
+        SUM(net_revenue) AS total_net_revenue
+      FROM `sql-bigquery-502206.business_insights.fact_sales`
+      WHERE sale_date BETWEEN '2025-01-01' AND '2025-12-31'
+      GROUP BY branch_region
+    comparison: multiset
+
+- case_id: electronics_november_december_2025
+  question: What were net sales for the Electronics category in November and December 2025?
+  category: join
+  difficulty: medium
+  notes: >
+    Targets the embedded holiday uplift on Electronics, so the answer should
+    be visibly large relative to other months.
+  expect:
+    referenced_tables:
+      - sql-bigquery-502206.business_insights.fact_sales
+      - sql-bigquery-502206.business_insights.dim_products
+    must_use_columns: [net_revenue, category]
+    reference_sql: |
+      SELECT SUM(f.net_revenue) AS total_net_sales
+      FROM `sql-bigquery-502206.business_insights.fact_sales` AS f
+      JOIN `sql-bigquery-502206.business_insights.dim_products` AS p
+        ON f.product_id = p.product_id
+      WHERE p.category = 'Electronics'
+        AND f.sale_date BETWEEN '2025-11-01' AND '2025-12-31'
+    comparison: scalar
+
+- case_id: sales_by_membership_status_2025
+  question: How did net revenue compare between members and non-members in 2025?
+  category: join
+  difficulty: medium
+  notes: Requires the customer dimension join.
+  expect:
+    referenced_tables:
+      - sql-bigquery-502206.business_insights.fact_sales
+      - sql-bigquery-502206.business_insights.dim_customers
+    must_use_columns: [net_revenue, membership_status]
+    reference_sql: |
+      SELECT
+        c.membership_status,
+        SUM(f.net_revenue) AS total_net_revenue
+      FROM `sql-bigquery-502206.business_insights.fact_sales` AS f
+      JOIN `sql-bigquery-502206.business_insights.dim_customers` AS c
+        ON f.customer_id = c.customer_id
+      WHERE f.sale_date BETWEEN '2025-01-01' AND '2025-12-31'
+      GROUP BY c.membership_status
+    comparison: multiset
+
+- case_id: transaction_count_2025
+  question: How many sales transactions were recorded in 2025?
+  category: aggregation
+  difficulty: easy
+  expect:
+    referenced_tables: ["sql-bigquery-502206.business_insights.fact_sales"]
+    must_use_columns: [sale_id]
+    reference_sql: |
+      SELECT COUNT(*) AS transaction_count
+      FROM `sql-bigquery-502206.business_insights.fact_sales`
+      WHERE sale_date BETWEEN '2025-01-01' AND '2025-12-31'
+    comparison: scalar
+
+- case_id: average_discount_by_promotion_2025
+  question: What was the average discount percentage by promotion type in 2025?
+  category: aggregation
+  difficulty: medium
+  notes: An average rather than a sum, so a SUM/COUNT confusion shows up here.
+  expect:
+    referenced_tables: ["sql-bigquery-502206.business_insights.fact_sales"]
+    must_use_columns: [discount_pct, promotion_type]
+    reference_sql: |
+      SELECT
+        promotion_type,
+        AVG(discount_pct) AS average_discount_pct
+      FROM `sql-bigquery-502206.business_insights.fact_sales`
+      WHERE sale_date BETWEEN '2025-01-01' AND '2025-12-31'
+      GROUP BY promotion_type
+    comparison: multiset
+
+- case_id: profit_margin_by_category_2025
+  question: What was the profit margin as a percentage of net revenue for each product category in 2025?
+  category: ratio
+  difficulty: hard
+  notes: >
+    A division, so SAFE_DIVIDE matters. Tolerance is looser because a model
+    may express the margin as a fraction or a percentage — the reference uses
+    a percentage.
+  expect:
+    referenced_tables:
+      - sql-bigquery-502206.business_insights.fact_sales
+      - sql-bigquery-502206.business_insights.dim_products
+    must_use_columns: [profit_amount, net_revenue, category]
+    reference_sql: |
+      SELECT
+        p.category,
+        SAFE_DIVIDE(SUM(f.profit_amount), SUM(f.net_revenue)) * 100
+          AS profit_margin_pct
+      FROM `sql-bigquery-502206.business_insights.fact_sales` AS f
+      JOIN `sql-bigquery-502206.business_insights.dim_products` AS p
+        ON f.product_id = p.product_id
+      WHERE f.sale_date BETWEEN '2025-01-01' AND '2025-12-31'
+      GROUP BY p.category
+    comparison: multiset
+    numeric_tolerance: 0.5
+
+- case_id: sales_by_channel_2025
+  question: What was the split of net revenue by sales channel in 2025?
+  category: aggregation
+  difficulty: easy
+  expect:
+    referenced_tables: ["sql-bigquery-502206.business_insights.fact_sales"]
+    must_use_columns: [net_revenue, sales_channel]
+    reference_sql: |
+      SELECT
+        sales_channel,
+        SUM(net_revenue) AS total_net_revenue
+      FROM `sql-bigquery-502206.business_insights.fact_sales`
+      WHERE sale_date BETWEEN '2025-01-01' AND '2025-12-31'
+      GROUP BY sales_channel
+    comparison: multiset
+
+- case_id: quantity_sold_by_category_2025
+  question: How many units were sold in each product category in 2025?
+  category: join
+  difficulty: medium
+  notes: Units, not revenue — checks the model reads the metric being asked for.
+  expect:
+    referenced_tables:
+      - sql-bigquery-502206.business_insights.fact_sales
+      - sql-bigquery-502206.business_insights.dim_products
+    must_use_columns: [quantity, category]
+    reference_sql: |
+      SELECT
+        p.category,
+        SUM(f.quantity) AS total_quantity
+      FROM `sql-bigquery-502206.business_insights.fact_sales` AS f
+      JOIN `sql-bigquery-502206.business_insights.dim_products` AS p
+        ON f.product_id = p.product_id
+      WHERE f.sale_date BETWEEN '2025-01-01' AND '2025-12-31'
+      GROUP BY p.category
+    comparison: multiset
+
+- case_id: best_month_for_profit_2025
+  question: Which month of 2025 had the highest profit?
+  category: ranking
+  difficulty: medium
+  notes: Targets the embedded November/December seasonality.
+  expect:
+    referenced_tables: ["sql-bigquery-502206.business_insights.fact_sales"]
+    must_use_columns: [profit_amount, sale_date]
+    reference_sql: |
+      SELECT
+        FORMAT_DATE('%Y-%m', sale_date) AS month,
+        SUM(profit_amount) AS total_profit
+      FROM `sql-bigquery-502206.business_insights.fact_sales`
+      WHERE sale_date BETWEEN '2025-01-01' AND '2025-12-31'
+      GROUP BY month
+      ORDER BY total_profit DESC
+      LIMIT 1
+    comparison: ordered
+
+- case_id: no_sales_in_1999
+  question: What were net sales by month in 1999?
+  category: empty_result
+  difficulty: easy
+  notes: >
+    The dataset holds nothing for 1999. Grouped by month deliberately: a bare
+    SUM over no rows returns one NULL row, which would not exercise the
+    zero-row path at all, whereas a GROUP BY returns genuinely no rows. Tests
+    that an empty result is answered honestly rather than invented.
+  expect:
+    referenced_tables: ["sql-bigquery-502206.business_insights.fact_sales"]
+    must_use_columns: [net_revenue]
+    reference_sql: |
+      SELECT
+        FORMAT_DATE('%Y-%m', sale_date) AS month,
+        SUM(net_revenue) AS total_net_sales
+      FROM `sql-bigquery-502206.business_insights.fact_sales`
+      WHERE sale_date BETWEEN '1999-01-01' AND '1999-12-31'
+      GROUP BY month
+    comparison: multiset
