@@ -181,18 +181,33 @@ class InsightsGraphNodes:
 
         error_stage = str(state.get("error_stage", "") or "")
 
-        if not error_stage:
-            if state.get("business_analysis"):
-                return "success", "complete"
-            if state.get("execution_result"):
-                return "success", "execution"
-            return "error", "incomplete"
+        raw_execution = state.get("execution_result")
+        execution_result: dict[str, Any] = (
+            raw_execution if isinstance(raw_execution, dict) else {}
+        )
+        execution_status = execution_result.get("status")
 
-        execution_result = state.get("execution_result") or {}
+        if not error_stage:
+            # Success is claimed only on positive evidence. Keying off the
+            # mere presence of an execution result would report a failed run
+            # as successful if any node ever cleared error_stage on its way
+            # out — a silent, exit-code-0 lie.
+            if execution_status == "success":
+                if state.get("business_analysis"):
+                    return "success", "complete"
+                return "success", "execution"
+
+            if execution_status in {"rejected", "error"}:
+                return (
+                    str(execution_status),
+                    str(execution_result.get("stage", "execution")),
+                )
+
+            return "error", "incomplete"
 
         if (
             execution_result.get("stage") == error_stage
-            and execution_result.get("status") == "rejected"
+            and execution_status == "rejected"
         ):
             return "rejected", error_stage
 

@@ -4,6 +4,14 @@ Replaces a hand-rolled helper that only one node called and that recorded
 nothing on error paths, so a run that failed left no trace of where it spent
 its time. Wrapping the node instead means every exit is timed, including the
 early returns that report a missing precondition.
+
+Applied to the five work nodes, not to the two lifecycle nodes:
+initialize_run does nothing worth timing, and finalize_run cannot appear in
+the trace it is itself assembling.
+
+An unexpected exception is re-raised rather than recorded as a trace entry —
+instrumentation must never swallow an error. The node name is attached to the
+exception so the outermost boundary can still report where it came from.
 """
 
 from functools import wraps

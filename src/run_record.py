@@ -91,6 +91,46 @@ def _redact_repair_history(
     ]
 
 
+def build_crash_record(
+    *,
+    question: str,
+    error: BaseException,
+    graph_run_id: str | None = None,
+    total_duration_ms: float | None = None,
+) -> dict[str, Any]:
+    """Return a record for a run that died before it could finish.
+
+    A node only converts the failures it expects into routed state. Anything
+    else propagates out of the graph, which means finalize_run never runs and
+    the run would otherwise vanish — exactly the run most worth having a
+    record of. This keeps the invariant "every run leaves exactly one record"
+    true at the outermost boundary.
+    """
+
+    minimal: AgentState = {
+        "question": question,
+        "status": "error",
+        "terminal_stage": "unhandled_exception",
+        "error_stage": "unhandled_exception",
+        "error_message": f"{type(error).__name__}: {error}",
+    }
+
+    if graph_run_id:
+        minimal["graph_run_id"] = graph_run_id
+
+    record = build_graph_run_record(
+        minimal,
+        total_duration_ms=total_duration_ms,
+    )
+
+    # Name the node it escaped from, when timed_node was able to attach it.
+    node = getattr(error, "graph_node", None)
+    if node:
+        record["outcome"]["failed_node"] = node
+
+    return record
+
+
 def build_graph_run_record(
     state: AgentState,
     *,
