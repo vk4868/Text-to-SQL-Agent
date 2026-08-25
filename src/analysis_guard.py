@@ -37,6 +37,11 @@ Only the claim-bearing sections are checked. LIMITATIONS and SUGGESTED
 FOLLOW-UP are asked by the prompt to discuss data that is not in the result,
 so figures there are proposals rather than assertions.
 
+A figure introduced by a hedge — "over 14,500", "roughly $1,463" — is
+matched with a 1% relative tolerance, because the model is explicitly not
+claiming precision. A hedge licenses rounding, not invention: "approximately
+24,000" against a real 24,800 is 3% out and is still reported.
+
 Known limitations, all of which cause over-reporting rather than silence:
 ratios ("4.5 times greater") and means over a subset are not enumerated, so a
 model that computes one is reported. A flag
@@ -80,6 +85,20 @@ _MONTH_AFTER = re.compile(rf"^(?:st|nd|rd|th)?[\s,]+(?:{_MONTHS})\b", re.IGNOREC
 
 CALENDAR_DAY_CEILING = 31
 
+#: Words that mark the following number as an approximation rather than an
+#: exact claim: "over 14,500" is a true statement about 14,544.01.
+_HEDGE = re.compile(
+    r"\b(?:about|approximately|approx\.?|roughly|around|nearly|almost|"
+    r"over|under|above|below|more than|less than|at least|at most|"
+    r"upwards of|circa|~)\s*\$?\s*$",
+    re.IGNORECASE,
+)
+
+#: Relative tolerance applied to a hedged figure. A hedge licenses rounding,
+#: not invention: "approximately 24,000" against a real 24,800 is 3% out and
+#: is still reported.
+HEDGED_RELATIVE_TOLERANCE = Decimal("0.01")
+
 #: Bare whole numbers at or below this are treated as structural rather than
 #: factual — "two to four insights", "Q4", "the top 5". A number carrying a
 #: currency or percent sign is never exempt.
@@ -101,6 +120,7 @@ class NumberToken:
         "has_currency",
         "suspect",
         "is_calendar_day",
+        "is_hedged",
     )
 
     def __init__(
@@ -112,6 +132,7 @@ class NumberToken:
         has_currency: bool = False,
         suspect: bool = False,
         is_calendar_day: bool = False,
+        is_hedged: bool = False,
     ) -> None:
         self.text = text
         self.value = value
@@ -121,6 +142,7 @@ class NumberToken:
         # faithfully, such as scientific notation.
         self.suspect = suspect
         self.is_calendar_day = is_calendar_day
+        self.is_hedged = is_hedged
 
     @property
     def has_unit(self) -> bool:
@@ -170,6 +192,7 @@ def extract_number_tokens(text: str) -> list[NumberToken]:
                 is_percent=bool(match.group("percent")),
                 has_currency=bool(match.group("currency")),
                 suspect=bool(_EXPONENT.match(tail)),
+                is_hedged=bool(_HEDGE.search(head)),
                 is_calendar_day=(
                     near_month
                     and not match.group("percent")
@@ -328,12 +351,20 @@ def _matches(
     value: Decimal,
     candidates: set[Decimal],
     tolerance: Decimal,
+    *,
+    relative_tolerance: Decimal | None = None,
 ) -> bool:
     if value in candidates:
         return True
 
+    allowed = tolerance
+
+    if relative_tolerance is not None:
+        # A hedged figure is allowed to be a rounded version of a real one.
+        allowed = max(tolerance, abs(value) * relative_tolerance)
+
     return any(
-        abs(value - candidate) <= tolerance for candidate in candidates
+        abs(value - candidate) <= allowed for candidate in candidates
     )
 
 
@@ -399,7 +430,14 @@ def find_ungrounded_numbers(
         else:
             candidates = data_values | question_values
 
-        if _matches(token.value, candidates, tolerance):
+        if _matches(
+            token.value,
+            candidates,
+            tolerance,
+            relative_tolerance=(
+                HEDGED_RELATIVE_TOLERANCE if token.is_hedged else None
+            ),
+        ):
             continue
 
         seen.add(key)

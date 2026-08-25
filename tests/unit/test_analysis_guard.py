@@ -712,3 +712,59 @@ class TestRealArithmeticErrorsFromLiveRuns:
             )
             == []
         )
+
+
+class TestHedgedApproximations:
+    """A hedge licenses rounding, not invention."""
+
+    ROWS = [
+        {"region": "Northeast", "v": Decimal("7356.42")},
+        {"region": "West", "v": Decimal("7187.59")},
+    ]
+    MONTH = [{"month": "2025-01", "v": Decimal("1462.66")}]
+
+    def test_a_true_hedged_claim_is_accepted(self):
+        """Real combined revenue is 14544.01, so "over 14,500" is true."""
+
+        assert (
+            find_ungrounded_numbers(
+                "The two regions collectively generated over 14,500.",
+                self.ROWS,
+            )
+            == []
+        )
+
+    def test_a_rounded_hedged_figure_is_accepted(self):
+        assert (
+            find_ungrounded_numbers(
+                "January was roughly $1,463.", self.MONTH
+            )
+            == []
+        )
+
+    def test_the_same_figure_unhedged_is_reported(self):
+        """Without the hedge it is a precise claim, and a wrong one."""
+
+        assert find_ungrounded_numbers(
+            "January was $1,463.", self.MONTH
+        ) == ["$1,463"]
+
+    def test_a_hedge_does_not_license_invention(self):
+        """3% out is beyond rounding."""
+
+        assert find_ungrounded_numbers(
+            "Approximately 24,000 in total.", self.MONTH
+        ) == ["24,000"]
+
+    @pytest.mark.parametrize(
+        "hedge",
+        ["about", "approximately", "roughly", "around", "nearly",
+         "over", "under", "more than", "at least"],
+    )
+    def test_common_hedges_are_recognised(self, hedge):
+        assert (
+            find_ungrounded_numbers(
+                f"Revenue was {hedge} 14,500.", self.ROWS
+            )
+            == []
+        )
