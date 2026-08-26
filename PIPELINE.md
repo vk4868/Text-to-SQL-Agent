@@ -45,7 +45,7 @@ It deliberately does *not* initialise the accumulators. `node_trace`, `repair_hi
 `SchemaProvider.get_schema_document()` walks the dataset via `BigQueryService`, formats it compactly, and appends the hand-written `RELATIONSHIPS` from `schema_config.py` — **BigQuery does not expose foreign keys**, so the join structure has to be told.
 
 ```
-DATASET: sql-bigquery-502206.business_insights
+DATASET: your-project-id.business_insights
 
 TABLE: fact_sales
 ROW COUNT: 1260

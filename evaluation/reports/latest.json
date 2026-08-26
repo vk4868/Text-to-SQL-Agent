@@ -88,7 +88,7 @@
           "detail": ""
         }
       },
-      "generated_sql": "SELECT\n    FORMAT_DATE('%Y-%m', sale_date) AS sales_month,\n    SUM(net_revenue) AS total_net_sales\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales`\nWHERE\n    sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY\n    sales_month\nORDER BY\n    sales_month",
+      "generated_sql": "SELECT\n    FORMAT_DATE('%Y-%m', sale_date) AS sales_month,\n    SUM(net_revenue) AS total_net_sales\nFROM\n    `your-project-id.business_insights.fact_sales`\nWHERE\n    sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY\n    sales_month\nORDER BY\n    sales_month",
       "repair_attempts": 0,
       "total_tokens": 3155,
       "duration_ms": 25211.32,
@@ -126,7 +126,7 @@
           "detail": ""
         }
       },
-      "generated_sql": "SELECT\n    SUM(t1.net_revenue) AS total_net_sales_2025\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales` AS t1\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')",
+      "generated_sql": "SELECT\n    SUM(t1.net_revenue) AS total_net_sales_2025\nFROM\n    `your-project-id.business_insights.fact_sales` AS t1\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')",
       "repair_attempts": 0,
       "total_tokens": 2316,
       "duration_ms": 18110.89,
@@ -164,7 +164,7 @@
           "detail": ""
         }
       },
-      "generated_sql": "SELECT\n    SUM(t1.profit_amount) AS total_profit_2025\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales` AS t1\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')",
+      "generated_sql": "SELECT\n    SUM(t1.profit_amount) AS total_profit_2025\nFROM\n    `your-project-id.business_insights.fact_sales` AS t1\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')",
       "repair_attempts": 0,
       "total_tokens": 2152,
       "duration_ms": 15885.52,
@@ -202,7 +202,7 @@
           "detail": ""
         }
       },
-      "generated_sql": "SELECT\n    t2.category,\n    SUM(t1.profit_amount) AS total_profit\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales` AS t1\nINNER JOIN\n    `sql-bigquery-502206.business_insights.dim_products` AS t2 ON t1.product_id = t2.product_id\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY\n    t2.category\nORDER BY\n    total_profit DESC\nLIMIT 1",
+      "generated_sql": "SELECT\n    t2.category,\n    SUM(t1.profit_amount) AS total_profit\nFROM\n    `your-project-id.business_insights.fact_sales` AS t1\nINNER JOIN\n    `your-project-id.business_insights.dim_products` AS t2 ON t1.product_id = t2.product_id\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY\n    t2.category\nORDER BY\n    total_profit DESC\nLIMIT 1",
       "repair_attempts": 0,
       "total_tokens": 2382,
       "duration_ms": 17443.48,
@@ -240,7 +240,7 @@
           "detail": ""
         }
       },
-      "generated_sql": "SELECT\n    t2.product_name,\n    SUM(t1.net_revenue) AS total_net_revenue\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales` AS t1\nINNER JOIN\n    `sql-bigquery-502206.business_insights.dim_products` AS t2\nON\n    t1.product_id = t2.product_id\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY\n    t2.product_name\nORDER BY\n    total_net_revenue DESC\nLIMIT 5",
+      "generated_sql": "SELECT\n    t2.product_name,\n    SUM(t1.net_revenue) AS total_net_revenue\nFROM\n    `your-project-id.business_insights.fact_sales` AS t1\nINNER JOIN\n    `your-project-id.business_insights.dim_products` AS t2\nON\n    t1.product_id = t2.product_id\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY\n    t2.product_name\nORDER BY\n    total_net_revenue DESC\nLIMIT 5",
       "repair_attempts": 0,
       "total_tokens": 2755,
       "duration_ms": 20579.04,
@@ -278,7 +278,7 @@
           "detail": "ungrounded figures: ['58%']"
         }
       },
-      "generated_sql": "SELECT\n    t1.branch_region,\n    SUM(t1.net_revenue) AS total_net_revenue\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales` AS t1\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY 1",
+      "generated_sql": "SELECT\n    t1.branch_region,\n    SUM(t1.net_revenue) AS total_net_revenue\nFROM\n    `your-project-id.business_insights.fact_sales` AS t1\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY 1",
       "repair_attempts": 0,
       "total_tokens": 2599,
       "duration_ms": 20103.75,
@@ -316,7 +316,7 @@
           "detail": ""
         }
       },
-      "generated_sql": "SELECT\n    SUM(t1.net_revenue) AS total_net_sales\nFROM\n    sql-bigquery-502206.business_insights.fact_sales AS t1\nINNER JOIN\n    sql-bigquery-502206.business_insights.dim_products AS t2 ON t1.product_id = t2.product_id\nWHERE\n    t2.category = 'Electronics' AND t1.sale_date BETWEEN '2025-11-01' AND '2025-12-31'",
+      "generated_sql": "SELECT\n    SUM(t1.net_revenue) AS total_net_sales\nFROM\n    your-project-id.business_insights.fact_sales AS t1\nINNER JOIN\n    your-project-id.business_insights.dim_products AS t2 ON t1.product_id = t2.product_id\nWHERE\n    t2.category = 'Electronics' AND t1.sale_date BETWEEN '2025-11-01' AND '2025-12-31'",
       "repair_attempts": 0,
       "total_tokens": 2482,
       "duration_ms": 19299.28,
@@ -354,7 +354,7 @@
           "detail": ""
         }
       },
-      "generated_sql": "SELECT\n    t1.membership_status,\n    SUM(t2.net_revenue) AS total_net_revenue\nFROM\n    `sql-bigquery-502206.business_insights.dim_customers` AS t1\nINNER JOIN\n    `sql-bigquery-502206.business_insights.fact_sales` AS t2\nON\n    t1.customer_id = t2.customer_id\nWHERE\n    t2.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY\n    t1.membership_status",
+      "generated_sql": "SELECT\n    t1.membership_status,\n    SUM(t2.net_revenue) AS total_net_revenue\nFROM\n    `your-project-id.business_insights.dim_customers` AS t1\nINNER JOIN\n    `your-project-id.business_insights.fact_sales` AS t2\nON\n    t1.customer_id = t2.customer_id\nWHERE\n    t2.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY\n    t1.membership_status",
       "repair_attempts": 0,
       "total_tokens": 2375,
       "duration_ms": 17672.91,
@@ -392,7 +392,7 @@
           "detail": ""
         }
       },
-      "generated_sql": "SELECT\n    COUNT(t1.sale_id)\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales` AS t1\nWHERE\n    t1.sale_date BETWEEN '2025-01-01' AND '2025-12-31'",
+      "generated_sql": "SELECT\n    COUNT(t1.sale_id)\nFROM\n    `your-project-id.business_insights.fact_sales` AS t1\nWHERE\n    t1.sale_date BETWEEN '2025-01-01' AND '2025-12-31'",
       "repair_attempts": 0,
       "total_tokens": 2253,
       "duration_ms": 56477.4,
@@ -430,7 +430,7 @@
           "detail": ""
         }
       },
-      "generated_sql": "SELECT\n    t1.promotion_type,\n    AVG(t1.discount_pct) AS average_discount_percentage\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales` AS t1\nWHERE\n    EXTRACT(YEAR FROM t1.sale_date) = 2025\nGROUP BY 1",
+      "generated_sql": "SELECT\n    t1.promotion_type,\n    AVG(t1.discount_pct) AS average_discount_percentage\nFROM\n    `your-project-id.business_insights.fact_sales` AS t1\nWHERE\n    EXTRACT(YEAR FROM t1.sale_date) = 2025\nGROUP BY 1",
       "repair_attempts": 0,
       "total_tokens": 2280,
       "duration_ms": 19025.6,
@@ -468,7 +468,7 @@
           "detail": ""
         }
       },
-      "generated_sql": "SELECT\n    t2.category,\n    CAST(SUM(t1.profit_amount) AS NUMERIC) / NULLIF(SUM(t1.net_revenue), 0) AS profit_margin_percentage\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales` AS t1\nINNER JOIN\n    `sql-bigquery-502206.business_insights.dim_products` AS t2 ON t1.product_id = t2.product_id\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY\n    t2.category",
+      "generated_sql": "SELECT\n    t2.category,\n    CAST(SUM(t1.profit_amount) AS NUMERIC) / NULLIF(SUM(t1.net_revenue), 0) AS profit_margin_percentage\nFROM\n    `your-project-id.business_insights.fact_sales` AS t1\nINNER JOIN\n    `your-project-id.business_insights.dim_products` AS t2 ON t1.product_id = t2.product_id\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY\n    t2.category",
       "repair_attempts": 0,
       "total_tokens": 2803,
       "duration_ms": 21533.65,
@@ -506,7 +506,7 @@
           "detail": "ungrounded figures: ['48%', '$24,700.65']"
         }
       },
-      "generated_sql": "SELECT\n    t1.sales_channel,\n    SUM(t1.net_revenue) AS total_net_revenue\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales` AS t1\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY 1",
+      "generated_sql": "SELECT\n    t1.sales_channel,\n    SUM(t1.net_revenue) AS total_net_revenue\nFROM\n    `your-project-id.business_insights.fact_sales` AS t1\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY 1",
       "repair_attempts": 0,
       "total_tokens": 2569,
       "duration_ms": 21823.87,
@@ -544,7 +544,7 @@
           "detail": "ungrounded figures: ['2,890', '2,209']"
         }
       },
-      "generated_sql": "SELECT\n    t2.category,\n    SUM(t1.quantity) AS total_units_sold\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales` AS t1\nINNER JOIN\n    `sql-bigquery-502206.business_insights.dim_products` AS t2 ON t1.product_id = t2.product_id\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY\n    t2.category",
+      "generated_sql": "SELECT\n    t2.category,\n    SUM(t1.quantity) AS total_units_sold\nFROM\n    `your-project-id.business_insights.fact_sales` AS t1\nINNER JOIN\n    `your-project-id.business_insights.dim_products` AS t2 ON t1.product_id = t2.product_id\nWHERE\n    t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY\n    t2.category",
       "repair_attempts": 0,
       "total_tokens": 2751,
       "duration_ms": 22381.59,
@@ -582,7 +582,7 @@
           "detail": ""
         }
       },
-      "generated_sql": "SELECT\n    FORMAT_DATE('%Y-%m', sale_date) AS sale_month,\n    SUM(profit_amount) AS total_profit\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales`\nWHERE\n    sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY\n    sale_month\nORDER BY\n    total_profit DESC\nLIMIT 1",
+      "generated_sql": "SELECT\n    FORMAT_DATE('%Y-%m', sale_date) AS sale_month,\n    SUM(profit_amount) AS total_profit\nFROM\n    `your-project-id.business_insights.fact_sales`\nWHERE\n    sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')\nGROUP BY\n    sale_month\nORDER BY\n    total_profit DESC\nLIMIT 1",
       "repair_attempts": 0,
       "total_tokens": 2293,
       "duration_ms": 16558.46,
@@ -620,7 +620,7 @@
           "detail": ""
         }
       },
-      "generated_sql": "SELECT\n    FORMAT_DATE('%Y-%m', t1.sale_date) AS sales_month,\n    SUM(t1.net_revenue) AS total_net_sales\nFROM\n    `sql-bigquery-502206.business_insights.fact_sales` AS t1\nWHERE\n    t1.sale_date BETWEEN DATE('1999-01-01') AND DATE('1999-12-31')\nGROUP BY\n    sales_month\nORDER BY\n    sales_month",
+      "generated_sql": "SELECT\n    FORMAT_DATE('%Y-%m', t1.sale_date) AS sales_month,\n    SUM(t1.net_revenue) AS total_net_sales\nFROM\n    `your-project-id.business_insights.fact_sales` AS t1\nWHERE\n    t1.sale_date BETWEEN DATE('1999-01-01') AND DATE('1999-12-31')\nGROUP BY\n    sales_month\nORDER BY\n    sales_month",
       "repair_attempts": 0,
       "total_tokens": 894,
       "duration_ms": 3328.07,

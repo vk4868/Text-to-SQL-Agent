@@ -1,6 +1,8 @@
 langgraph
-ollama
 langchain
+ollama
 google-cloud-bigquery
 python-dotenv
 sqlglot
+pyyaml
+streamlit

@@ -12,7 +12,7 @@ def main() -> None:
                     category,
                     COUNT(*) AS product_count
                 FROM
-                    `sql-bigquery-502206.business_insights.dim_products`
+                    `your-project-id.business_insights.dim_products`
                 GROUP BY
                     category
                 LIMIT 5
@@ -26,7 +26,7 @@ def main() -> None:
                         product_id,
                         SUM(net_revenue) AS revenue
                     FROM
-                        `sql-bigquery-502206.business_insights.fact_sales`
+                        `your-project-id.business_insights.fact_sales`
                     GROUP BY
                         product_id
                 )
@@ -57,7 +57,7 @@ def main() -> None:
             "sql": """
                 SELECT *
                 FROM
-                    `sql-bigquery-502206.business_insights.secret_table`
+                    `your-project-id.business_insights.secret_table`
                 LIMIT 5
             """,
         },

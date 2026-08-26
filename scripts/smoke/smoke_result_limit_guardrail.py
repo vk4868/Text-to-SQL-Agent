@@ -12,7 +12,7 @@ def main() -> None:
                     sale_date,
                     net_revenue
                 FROM
-                    `sql-bigquery-502206.business_insights.fact_sales`
+                    `your-project-id.business_insights.fact_sales`
                 ORDER BY
                     sale_id
             """,
@@ -25,7 +25,7 @@ def main() -> None:
                     sale_date,
                     net_revenue
                 FROM
-                    `sql-bigquery-502206.business_insights.fact_sales`
+                    `your-project-id.business_insights.fact_sales`
                 ORDER BY
                     sale_id
                 LIMIT 5
@@ -39,7 +39,7 @@ def main() -> None:
                     sale_date,
                     net_revenue
                 FROM
-                    `sql-bigquery-502206.business_insights.fact_sales`
+                    `your-project-id.business_insights.fact_sales`
                 ORDER BY
                     sale_id
                 LIMIT 500

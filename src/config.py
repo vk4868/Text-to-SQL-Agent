@@ -9,7 +9,7 @@ load_dotenv()
 
 PROJECT_ID= os.getenv(
     "GCP_PROJECT_ID",
-    "sql-bigquery-502206"
+    "your-project-id"
 
 )
 

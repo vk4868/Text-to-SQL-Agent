@@ -10,9 +10,9 @@ def main() -> None:
             p.category,
             ROUND(SUM(s.net_revenue), 2) AS total_revenue
         FROM
-            `sql-bigquery-502206.business_insights.fact_sales` AS s
+            `your-project-id.business_insights.fact_sales` AS s
         INNER JOIN
-            `sql-bigquery-502206.business_insights.dim_products` AS p
+            `your-project-id.business_insights.dim_products` AS p
             ON s.product_id = p.product_id
         GROUP BY
             p.category

@@ -8,7 +8,7 @@ $ uv run python main.py "What were total net sales by month in 2025?" --trace
 SQL
   SELECT FORMAT_DATE('%Y-%m', sale_date) AS sales_month,
          SUM(net_revenue) AS total_net_sales
-  FROM `sql-bigquery-502206.business_insights.fact_sales`
+  FROM `your-project-id.business_insights.fact_sales`
   WHERE sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')
   GROUP BY sales_month ORDER BY sales_month
 

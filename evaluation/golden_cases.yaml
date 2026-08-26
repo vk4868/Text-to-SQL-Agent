@@ -22,13 +22,13 @@
   difficulty: easy
   notes: The canonical question. Exercises partition pruning on sale_date.
   expect:
-    referenced_tables: ["sql-bigquery-502206.business_insights.fact_sales"]
+    referenced_tables: ["your-project-id.business_insights.fact_sales"]
     must_use_columns: [net_revenue, sale_date]
     reference_sql: |
       SELECT
         FORMAT_DATE('%Y-%m', sale_date) AS month,
         SUM(net_revenue) AS total_net_sales
-      FROM `sql-bigquery-502206.business_insights.fact_sales`
+      FROM `your-project-id.business_insights.fact_sales`
       WHERE sale_date BETWEEN '2025-01-01' AND '2025-12-31'
       GROUP BY month
       ORDER BY month
@@ -39,11 +39,11 @@
   category: aggregation
   difficulty: easy
   expect:
-    referenced_tables: ["sql-bigquery-502206.business_insights.fact_sales"]
+    referenced_tables: ["your-project-id.business_insights.fact_sales"]
     must_use_columns: [net_revenue]
     reference_sql: |
       SELECT SUM(net_revenue) AS total_net_sales
-      FROM `sql-bigquery-502206.business_insights.fact_sales`
+      FROM `your-project-id.business_insights.fact_sales`
       WHERE sale_date BETWEEN '2025-01-01' AND '2025-12-31'
     comparison: scalar
 
@@ -55,11 +55,11 @@
     Tests the "profit" -> profit_amount mapping. A model that computes
     revenue minus cost by hand should still land on the same number.
   expect:
-    referenced_tables: ["sql-bigquery-502206.business_insights.fact_sales"]
+    referenced_tables: ["your-project-id.business_insights.fact_sales"]
     must_use_columns: [profit_amount]
     reference_sql: |
       SELECT SUM(profit_amount) AS total_profit
-      FROM `sql-bigquery-502206.business_insights.fact_sales`
+      FROM `your-project-id.business_insights.fact_sales`
       WHERE sale_date BETWEEN '2025-01-01' AND '2025-12-31'
     comparison: scalar
 
@@ -70,15 +70,15 @@
   notes: Requires the fact-to-product join; category lives only on the dimension.
   expect:
     referenced_tables:
-      - sql-bigquery-502206.business_insights.fact_sales
-      - sql-bigquery-502206.business_insights.dim_products
+      - your-project-id.business_insights.fact_sales
+      - your-project-id.business_insights.dim_products
     must_use_columns: [profit_amount, category]
     reference_sql: |
       SELECT
         p.category,
         SUM(f.profit_amount) AS total_profit
-      FROM `sql-bigquery-502206.business_insights.fact_sales` AS f
-      JOIN `sql-bigquery-502206.business_insights.dim_products` AS p
+      FROM `your-project-id.business_insights.fact_sales` AS f
+      JOIN `your-project-id.business_insights.dim_products` AS p
         ON f.product_id = p.product_id
       WHERE f.sale_date BETWEEN '2025-01-01' AND '2025-12-31'
       GROUP BY p.category
@@ -92,15 +92,15 @@
   difficulty: medium
   expect:
     referenced_tables:
-      - sql-bigquery-502206.business_insights.fact_sales
-      - sql-bigquery-502206.business_insights.dim_products
+      - your-project-id.business_insights.fact_sales
+      - your-project-id.business_insights.dim_products
     must_use_columns: [net_revenue, product_name]
     reference_sql: |
       SELECT
         p.product_name,
         SUM(f.net_revenue) AS total_net_revenue
-      FROM `sql-bigquery-502206.business_insights.fact_sales` AS f
-      JOIN `sql-bigquery-502206.business_insights.dim_products` AS p
+      FROM `your-project-id.business_insights.fact_sales` AS f
+      JOIN `your-project-id.business_insights.dim_products` AS p
         ON f.product_id = p.product_id
       WHERE f.sale_date BETWEEN '2025-01-01' AND '2025-12-31'
       GROUP BY p.product_name
@@ -114,13 +114,13 @@
   difficulty: easy
   notes: branch_region is denormalised onto the fact, so no join is needed.
   expect:
-    referenced_tables: ["sql-bigquery-502206.business_insights.fact_sales"]
+    referenced_tables: ["your-project-id.business_insights.fact_sales"]
     must_use_columns: [net_revenue, branch_region]
     reference_sql: |
       SELECT
         branch_region,
         SUM(net_revenue) AS total_net_revenue
-      FROM `sql-bigquery-502206.business_insights.fact_sales`
+      FROM `your-project-id.business_insights.fact_sales`
       WHERE sale_date BETWEEN '2025-01-01' AND '2025-12-31'
       GROUP BY branch_region
     comparison: multiset
@@ -134,13 +134,13 @@
     be visibly large relative to other months.
   expect:
     referenced_tables:
-      - sql-bigquery-502206.business_insights.fact_sales
-      - sql-bigquery-502206.business_insights.dim_products
+      - your-project-id.business_insights.fact_sales
+      - your-project-id.business_insights.dim_products
     must_use_columns: [net_revenue, category]
     reference_sql: |
       SELECT SUM(f.net_revenue) AS total_net_sales
-      FROM `sql-bigquery-502206.business_insights.fact_sales` AS f
-      JOIN `sql-bigquery-502206.business_insights.dim_products` AS p
+      FROM `your-project-id.business_insights.fact_sales` AS f
+      JOIN `your-project-id.business_insights.dim_products` AS p
         ON f.product_id = p.product_id
       WHERE p.category = 'Electronics'
         AND f.sale_date BETWEEN '2025-11-01' AND '2025-12-31'
@@ -153,15 +153,15 @@
   notes: Requires the customer dimension join.
   expect:
     referenced_tables:
-      - sql-bigquery-502206.business_insights.fact_sales
-      - sql-bigquery-502206.business_insights.dim_customers
+      - your-project-id.business_insights.fact_sales
+      - your-project-id.business_insights.dim_customers
     must_use_columns: [net_revenue, membership_status]
     reference_sql: |
       SELECT
         c.membership_status,
         SUM(f.net_revenue) AS total_net_revenue
-      FROM `sql-bigquery-502206.business_insights.fact_sales` AS f
-      JOIN `sql-bigquery-502206.business_insights.dim_customers` AS c
+      FROM `your-project-id.business_insights.fact_sales` AS f
+      JOIN `your-project-id.business_insights.dim_customers` AS c
         ON f.customer_id = c.customer_id
       WHERE f.sale_date BETWEEN '2025-01-01' AND '2025-12-31'
       GROUP BY c.membership_status
@@ -172,11 +172,11 @@
   category: aggregation
   difficulty: easy
   expect:
-    referenced_tables: ["sql-bigquery-502206.business_insights.fact_sales"]
+    referenced_tables: ["your-project-id.business_insights.fact_sales"]
     must_use_columns: [sale_id]
     reference_sql: |
       SELECT COUNT(*) AS transaction_count
-      FROM `sql-bigquery-502206.business_insights.fact_sales`
+      FROM `your-project-id.business_insights.fact_sales`
       WHERE sale_date BETWEEN '2025-01-01' AND '2025-12-31'
     comparison: scalar
 
@@ -186,13 +186,13 @@
   difficulty: medium
   notes: An average rather than a sum, so a SUM/COUNT confusion shows up here.
   expect:
-    referenced_tables: ["sql-bigquery-502206.business_insights.fact_sales"]
+    referenced_tables: ["your-project-id.business_insights.fact_sales"]
     must_use_columns: [discount_pct, promotion_type]
     reference_sql: |
       SELECT
         promotion_type,
         AVG(discount_pct) AS average_discount_pct
-      FROM `sql-bigquery-502206.business_insights.fact_sales`
+      FROM `your-project-id.business_insights.fact_sales`
       WHERE sale_date BETWEEN '2025-01-01' AND '2025-12-31'
       GROUP BY promotion_type
     comparison: multiset
@@ -207,16 +207,16 @@
     a percentage.
   expect:
     referenced_tables:
-      - sql-bigquery-502206.business_insights.fact_sales
-      - sql-bigquery-502206.business_insights.dim_products
+      - your-project-id.business_insights.fact_sales
+      - your-project-id.business_insights.dim_products
     must_use_columns: [profit_amount, net_revenue, category]
     reference_sql: |
       SELECT
         p.category,
         SAFE_DIVIDE(SUM(f.profit_amount), SUM(f.net_revenue)) * 100
           AS profit_margin_pct
-      FROM `sql-bigquery-502206.business_insights.fact_sales` AS f
-      JOIN `sql-bigquery-502206.business_insights.dim_products` AS p
+      FROM `your-project-id.business_insights.fact_sales` AS f
+      JOIN `your-project-id.business_insights.dim_products` AS p
         ON f.product_id = p.product_id
       WHERE f.sale_date BETWEEN '2025-01-01' AND '2025-12-31'
       GROUP BY p.category
@@ -228,13 +228,13 @@
   category: aggregation
   difficulty: easy
   expect:
-    referenced_tables: ["sql-bigquery-502206.business_insights.fact_sales"]
+    referenced_tables: ["your-project-id.business_insights.fact_sales"]
     must_use_columns: [net_revenue, sales_channel]
     reference_sql: |
       SELECT
         sales_channel,
         SUM(net_revenue) AS total_net_revenue
-      FROM `sql-bigquery-502206.business_insights.fact_sales`
+      FROM `your-project-id.business_insights.fact_sales`
       WHERE sale_date BETWEEN '2025-01-01' AND '2025-12-31'
       GROUP BY sales_channel
     comparison: multiset
@@ -246,15 +246,15 @@
   notes: Units, not revenue — checks the model reads the metric being asked for.
   expect:
     referenced_tables:
-      - sql-bigquery-502206.business_insights.fact_sales
-      - sql-bigquery-502206.business_insights.dim_products
+      - your-project-id.business_insights.fact_sales
+      - your-project-id.business_insights.dim_products
     must_use_columns: [quantity, category]
     reference_sql: |
       SELECT
         p.category,
         SUM(f.quantity) AS total_quantity
-      FROM `sql-bigquery-502206.business_insights.fact_sales` AS f
-      JOIN `sql-bigquery-502206.business_insights.dim_products` AS p
+      FROM `your-project-id.business_insights.fact_sales` AS f
+      JOIN `your-project-id.business_insights.dim_products` AS p
         ON f.product_id = p.product_id
       WHERE f.sale_date BETWEEN '2025-01-01' AND '2025-12-31'
       GROUP BY p.category
@@ -266,13 +266,13 @@
   difficulty: medium
   notes: Targets the embedded November/December seasonality.
   expect:
-    referenced_tables: ["sql-bigquery-502206.business_insights.fact_sales"]
+    referenced_tables: ["your-project-id.business_insights.fact_sales"]
     must_use_columns: [profit_amount, sale_date]
     reference_sql: |
       SELECT
         FORMAT_DATE('%Y-%m', sale_date) AS month,
         SUM(profit_amount) AS total_profit
-      FROM `sql-bigquery-502206.business_insights.fact_sales`
+      FROM `your-project-id.business_insights.fact_sales`
       WHERE sale_date BETWEEN '2025-01-01' AND '2025-12-31'
       GROUP BY month
       ORDER BY total_profit DESC
@@ -289,13 +289,13 @@
     zero-row path at all, whereas a GROUP BY returns genuinely no rows. Tests
     that an empty result is answered honestly rather than invented.
   expect:
-    referenced_tables: ["sql-bigquery-502206.business_insights.fact_sales"]
+    referenced_tables: ["your-project-id.business_insights.fact_sales"]
     must_use_columns: [net_revenue]
     reference_sql: |
       SELECT
         FORMAT_DATE('%Y-%m', sale_date) AS month,
         SUM(net_revenue) AS total_net_sales
-      FROM `sql-bigquery-502206.business_insights.fact_sales`
+      FROM `your-project-id.business_insights.fact_sales`
       WHERE sale_date BETWEEN '1999-01-01' AND '1999-12-31'
       GROUP BY month
     comparison: multiset

@@ -1,201 +1,201 @@
 customer_id,customer_name,membership_status,customer_segment,gender,age_group,signup_date,home_city,home_state,acquisition_channel
-C0001,Oliver Martin,Member,Consumer,Female,18-24,2023-11-21,Seattle,WA,Paid Social
-C0002,Ethan Lewis,Normal,Small Business,Female,55+,2022-09-13,Boston,MA,Referral
-C0003,Mason Clark,Normal,Consumer,Prefer not to say,45-54,2023-04-12,Houston,TX,In-Store
-C0004,Charlotte Moore,Member,Small Business,Female,25-34,2022-11-30,Boston,MA,Organic Search
-C0005,Mia Lewis,Member,Consumer,Prefer not to say,25-34,2024-08-04,Chicago,IL,Referral
-C0006,Henry Thomas,Member,Consumer,Female,25-34,2023-10-09,New York,NY,In-Store
-C0007,Jack Miller,Member,Corporate,Female,25-34,2024-07-28,Atlanta,GA,Email Campaign
-C0008,Harper Clark,Normal,Consumer,Female,55+,2023-03-26,Denver,CO,Referral
-C0009,Sophia Williams,Member,Small Business,Female,35-44,2024-05-14,Chicago,IL,Referral
-C0010,Daniel White,Normal,Small Business,Female,35-44,2022-01-24,Boston,MA,In-Store
-C0011,Evelyn Thomas,Member,Consumer,Male,55+,2022-01-07,Los Angeles,CA,Organic Search
-C0012,Elijah White,Normal,Consumer,Female,35-44,2024-11-05,Los Angeles,CA,Email Campaign
-C0013,Ava Lewis,Member,Consumer,Male,45-54,2024-01-14,Seattle,WA,Paid Social
-C0014,Sophia Davis,Member,Consumer,Male,55+,2022-05-22,Los Angeles,CA,Organic Search
-C0015,Alexander Harris,Member,Small Business,Male,55+,2024-05-16,Chicago,IL,Email Campaign
-C0016,James Anderson,Normal,Consumer,Female,55+,2024-06-16,Denver,CO,Organic Search
-C0017,Mia Thomas,Member,Consumer,Male,18-24,2023-03-28,New York,NY,Organic Search
-C0018,Mia Smith,Member,Consumer,Female,25-34,2024-09-21,Seattle,WA,In-Store
-C0019,Alexander Davis,Normal,Consumer,Female,35-44,2022-07-18,Atlanta,GA,Paid Social
-C0020,Sophia Williams 2,Member,Consumer,Female,25-34,2022-08-12,New York,NY,Paid Social
-C0021,Layla Garcia,Member,Small Business,Male,25-34,2022-06-04,Boston,MA,Referral
-C0022,Sophia Harris,Normal,Corporate,Male,25-34,2023-04-30,New York,NY,Organic Search
-C0023,Ruby Smith,Member,Corporate,Male,55+,2023-06-28,Chicago,IL,Paid Social
-C0024,Benjamin Jones,Member,Corporate,Female,45-54,2022-05-05,Houston,TX,Referral
-C0025,Oliver Smith,Normal,Consumer,Female,35-44,2022-05-20,Los Angeles,CA,Organic Search
-C0026,Leo Clark,Member,Consumer,Female,25-34,2024-12-06,New York,NY,Referral
-C0027,Jack Davis,Member,Consumer,Male,35-44,2023-09-07,Boston,MA,In-Store
-C0028,Ava Lee,Member,Consumer,Female,18-24,2023-06-28,Los Angeles,CA,Organic Search
-C0029,Leo Taylor,Member,Small Business,Prefer not to say,35-44,2023-09-12,Boston,MA,Referral
-C0030,Ava Harris,Normal,Consumer,Male,25-34,2022-10-03,Boston,MA,Email Campaign
-C0031,Noah Wilson,Member,Consumer,Male,35-44,2023-02-21,Boston,MA,Referral
-C0032,Harper Smith,Member,Small Business,Male,18-24,2022-04-01,Los Angeles,CA,Referral
-C0033,Harper Garcia,Member,Consumer,Non-binary,18-24,2022-01-20,Atlanta,GA,Referral
-C0034,Noah Harris,Normal,Consumer,Female,25-34,2022-10-31,New York,NY,Paid Social
-C0035,Amelia Taylor,Normal,Consumer,Male,45-54,2023-12-26,Houston,TX,Paid Social
-C0036,Noah Davis,Normal,Small Business,Male,18-24,2024-04-24,Chicago,IL,Paid Social
-C0037,Aria Davis,Member,Consumer,Male,45-54,2024-02-23,Boston,MA,Organic Search
-C0038,Daniel Taylor,Normal,Small Business,Female,18-24,2023-04-02,Boston,MA,Paid Social
-C0039,Mia Wilson,Member,Consumer,Female,55+,2023-11-10,Seattle,WA,In-Store
-C0040,Elijah Clark,Member,Consumer,Female,45-54,2023-12-09,Boston,MA,Referral
-C0041,Grace Moore,Member,Consumer,Male,35-44,2022-01-04,Houston,TX,Referral
-C0042,James Taylor,Member,Consumer,Male,35-44,2023-11-08,Denver,CO,Organic Search
-C0043,Chloe White,Normal,Consumer,Female,35-44,2023-08-29,Boston,MA,Referral
-C0044,Zoe Garcia,Member,Small Business,Female,25-34,2023-09-15,Boston,MA,Referral
-C0045,Jack Lee,Member,Consumer,Non-binary,45-54,2024-08-27,Atlanta,GA,Email Campaign
-C0046,Isla Anderson,Member,Corporate,Female,35-44,2023-04-27,Seattle,WA,Organic Search
-C0047,Olivia Smith,Normal,Consumer,Male,35-44,2022-05-30,Houston,TX,Referral
-C0048,Zoe Thompson,Member,Consumer,Male,55+,2022-01-12,Denver,CO,In-Store
-C0049,Layla Davis,Normal,Consumer,Female,18-24,2024-08-09,Chicago,IL,Email Campaign
-C0050,Daniel Jones,Normal,Corporate,Male,55+,2023-10-12,Atlanta,GA,Referral
-C0051,Layla Harris,Normal,Small Business,Male,35-44,2024-08-30,Atlanta,GA,Email Campaign
-C0052,Evelyn White,Member,Consumer,Female,45-54,2022-06-08,Atlanta,GA,Paid Social
-C0053,Isla Jones,Member,Consumer,Female,18-24,2023-03-15,Chicago,IL,Referral
-C0054,Aria Smith,Normal,Consumer,Male,45-54,2022-02-10,Houston,TX,Paid Social
-C0055,Ava Taylor,Normal,Small Business,Male,35-44,2024-05-08,Boston,MA,Email Campaign
-C0056,Henry Thompson,Member,Consumer,Male,25-34,2024-03-07,Houston,TX,Paid Social
-C0057,Oliver Lee,Normal,Consumer,Male,35-44,2024-03-17,Chicago,IL,Organic Search
-C0058,Layla Jones,Member,Consumer,Female,25-34,2023-11-02,Atlanta,GA,Email Campaign
-C0059,Zoe Wilson,Member,Consumer,Female,45-54,2022-02-09,Denver,CO,In-Store
-C0060,Henry Brown,Normal,Corporate,Male,45-54,2023-02-13,New York,NY,Organic Search
-C0061,Alexander Williams,Member,Consumer,Male,25-34,2024-01-26,Houston,TX,Email Campaign
-C0062,Grace Garcia,Member,Consumer,Male,35-44,2023-10-01,Boston,MA,Paid Social
-C0063,James Brown,Member,Small Business,Male,45-54,2022-09-05,Houston,TX,Organic Search
-C0064,Layla Taylor,Member,Consumer,Female,45-54,2024-05-10,Los Angeles,CA,In-Store
-C0065,Daniel Jones 2,Member,Consumer,Male,35-44,2023-07-08,Denver,CO,Email Campaign
-C0066,Daniel Martin,Member,Consumer,Female,25-34,2022-06-27,Boston,MA,Email Campaign
-C0067,Zoe Thomas,Member,Consumer,Male,25-34,2024-09-25,New York,NY,Paid Social
-C0068,Evelyn Harris,Member,Consumer,Male,45-54,2023-05-10,New York,NY,Email Campaign
-C0069,Alexander Thompson,Normal,Consumer,Female,25-34,2023-03-30,Atlanta,GA,Referral
-C0070,Mason Thompson,Member,Small Business,Female,25-34,2023-11-09,Seattle,WA,Paid Social
-C0071,Henry Williams,Member,Small Business,Male,25-34,2023-01-15,Houston,TX,Organic Search
-C0072,Ella Williams,Member,Consumer,Male,18-24,2023-09-12,Houston,TX,Organic Search
-C0073,Sophia Harris 2,Normal,Consumer,Female,18-24,2024-10-02,Boston,MA,Paid Social
-C0074,Alexander Lee,Member,Consumer,Female,18-24,2024-09-05,Seattle,WA,Referral
-C0075,Sophia Jones,Normal,Corporate,Female,55+,2022-06-24,Chicago,IL,Email Campaign
-C0076,Henry White,Member,Consumer,Male,25-34,2024-05-28,Denver,CO,Referral
-C0077,Charlotte Miller,Member,Consumer,Female,25-34,2023-05-07,Houston,TX,Organic Search
-C0078,Samuel Lewis,Member,Consumer,Female,45-54,2023-08-03,Atlanta,GA,Referral
-C0079,Harper Clark 2,Member,Consumer,Male,55+,2022-11-02,Houston,TX,Organic Search
-C0080,Oliver Anderson,Member,Consumer,Non-binary,35-44,2023-09-15,Boston,MA,Referral
-C0081,Benjamin Lee,Member,Small Business,Female,35-44,2023-10-23,Los Angeles,CA,Organic Search
-C0082,Olivia Wilson,Normal,Consumer,Male,35-44,2024-11-28,New York,NY,Organic Search
-C0083,Layla Thompson,Member,Consumer,Male,35-44,2023-10-20,Los Angeles,CA,Paid Social
-C0084,Benjamin Anderson,Normal,Consumer,Female,18-24,2024-07-20,Denver,CO,Organic Search
-C0085,Ruby White,Normal,Consumer,Male,18-24,2024-04-26,New York,NY,Referral
-C0086,Benjamin Lee 2,Member,Consumer,Male,25-34,2023-08-13,New York,NY,Organic Search
-C0087,Leo Garcia,Member,Consumer,Male,25-34,2022-07-10,Boston,MA,Organic Search
-C0088,Grace Jones,Normal,Consumer,Male,25-34,2023-07-14,Atlanta,GA,Paid Social
-C0089,Daniel Harris,Member,Corporate,Female,45-54,2024-11-06,Chicago,IL,Organic Search
-C0090,Aria Thomas,Normal,Consumer,Male,45-54,2023-09-04,Boston,MA,Referral
-C0091,Noah Lee,Member,Consumer,Female,35-44,2024-02-12,Atlanta,GA,Organic Search
-C0092,Leo Clark 2,Member,Small Business,Male,25-34,2022-03-31,Denver,CO,In-Store
-C0093,Zoe Moore,Member,Consumer,Female,55+,2024-10-25,Chicago,IL,Organic Search
-C0094,Samuel Williams,Member,Consumer,Male,18-24,2022-11-13,Atlanta,GA,Organic Search
-C0095,Ruby Brown,Normal,Small Business,Male,55+,2024-02-18,Seattle,WA,In-Store
-C0096,Benjamin Harris,Member,Consumer,Male,55+,2023-08-12,New York,NY,Paid Social
-C0097,Charlotte Williams,Member,Consumer,Male,18-24,2022-03-01,Atlanta,GA,Paid Social
-C0098,Mason Martin,Member,Consumer,Female,25-34,2023-01-04,Chicago,IL,In-Store
-C0099,Leo Thompson,Member,Consumer,Female,25-34,2024-07-30,Chicago,IL,Email Campaign
-C0100,Ella Harris,Member,Corporate,Female,35-44,2023-09-05,Chicago,IL,Organic Search
-C0101,Chloe Miller,Normal,Consumer,Male,35-44,2024-02-21,Denver,CO,In-Store
-C0102,Ella Johnson,Member,Consumer,Male,55+,2022-04-11,Denver,CO,Email Campaign
-C0103,Ella Davis,Member,Consumer,Male,35-44,2023-05-29,Seattle,WA,Referral
-C0104,Liam Williams,Member,Consumer,Female,45-54,2024-01-18,New York,NY,Paid Social
-C0105,Aria Garcia,Member,Consumer,Male,35-44,2024-01-20,Houston,TX,Email Campaign
-C0106,Harper Thompson,Normal,Consumer,Female,35-44,2022-08-24,Boston,MA,Email Campaign
-C0107,Henry Moore,Member,Consumer,Female,35-44,2023-06-26,Seattle,WA,Referral
-C0108,Harper Clark 3,Normal,Corporate,Male,35-44,2022-08-10,Denver,CO,Referral
-C0109,Jack Lewis,Member,Consumer,Female,55+,2024-08-08,Houston,TX,Paid Social
-C0110,Liam Smith,Member,Consumer,Male,25-34,2022-07-19,New York,NY,Paid Social
-C0111,Mason Harris,Member,Small Business,Male,35-44,2024-04-29,Denver,CO,Referral
-C0112,Evelyn Smith,Member,Consumer,Female,45-54,2023-04-29,Seattle,WA,Referral
-C0113,Ethan Smith,Member,Corporate,Female,18-24,2024-07-20,Denver,CO,Referral
-C0114,Olivia Smith 2,Member,Consumer,Male,18-24,2023-02-25,Seattle,WA,Organic Search
-C0115,Lucas Davis,Normal,Small Business,Prefer not to say,25-34,2022-01-06,Seattle,WA,In-Store
-C0116,Harper Garcia 2,Normal,Consumer,Male,25-34,2022-01-31,Los Angeles,CA,Referral
-C0117,Olivia Garcia,Member,Small Business,Female,18-24,2024-12-13,Boston,MA,Paid Social
-C0118,Mason White,Member,Consumer,Male,45-54,2022-03-30,Los Angeles,CA,Referral
-C0119,Chloe Lee,Member,Consumer,Female,25-34,2024-04-02,New York,NY,Email Campaign
-C0120,Samuel Brown,Member,Consumer,Male,25-34,2022-09-16,Los Angeles,CA,Referral
-C0121,Jack Moore,Member,Consumer,Female,45-54,2022-07-23,Boston,MA,Referral
-C0122,Lucas Martin,Normal,Consumer,Male,25-34,2024-07-17,Atlanta,GA,Paid Social
-C0123,Jack Wilson,Normal,Consumer,Male,18-24,2024-08-29,Seattle,WA,Organic Search
-C0124,Charlotte Taylor,Member,Consumer,Female,35-44,2023-11-07,Chicago,IL,In-Store
-C0125,Layla Smith,Member,Consumer,Male,25-34,2024-11-05,Boston,MA,Organic Search
-C0126,Charlotte Taylor 2,Member,Consumer,Male,45-54,2023-04-09,Seattle,WA,In-Store
-C0127,Olivia Lewis,Member,Consumer,Female,55+,2023-09-25,Boston,MA,Organic Search
-C0128,Noah Clark,Member,Small Business,Male,18-24,2022-03-04,Denver,CO,Paid Social
-C0129,Daniel Thomas,Member,Small Business,Female,55+,2022-06-23,Chicago,IL,Email Campaign
-C0130,Sophia Brown,Member,Consumer,Female,25-34,2024-06-24,Boston,MA,Referral
-C0131,Ethan Martin,Member,Consumer,Female,35-44,2024-09-23,Los Angeles,CA,Organic Search
-C0132,Sophia Johnson,Member,Consumer,Female,45-54,2022-10-09,Houston,TX,Organic Search
-C0133,Benjamin Martin,Member,Consumer,Male,35-44,2023-04-17,Chicago,IL,Email Campaign
-C0134,Mia Moore,Member,Consumer,Male,45-54,2022-06-09,New York,NY,Referral
-C0135,Aria Anderson,Member,Corporate,Male,45-54,2022-12-18,Los Angeles,CA,Email Campaign
-C0136,Mason Brown,Normal,Consumer,Female,35-44,2024-03-31,Denver,CO,Paid Social
-C0137,William Davis,Normal,Consumer,Female,35-44,2022-08-22,Seattle,WA,Email Campaign
-C0138,Ethan Jones,Member,Consumer,Male,35-44,2022-12-22,Houston,TX,Referral
-C0139,Elijah Thompson,Normal,Small Business,Male,35-44,2024-07-08,Atlanta,GA,Referral
-C0140,Jack Thomas,Member,Consumer,Male,45-54,2023-09-13,Chicago,IL,Paid Social
-C0141,Mia Anderson,Member,Consumer,Male,18-24,2023-08-11,Atlanta,GA,In-Store
-C0142,Zoe Lee,Member,Small Business,Male,25-34,2023-01-21,New York,NY,Organic Search
-C0143,Sophia Lee,Normal,Small Business,Female,35-44,2022-06-22,Los Angeles,CA,Organic Search
-C0144,Samuel Lee,Member,Corporate,Female,25-34,2024-03-04,Chicago,IL,Referral
-C0145,William Brown,Member,Consumer,Male,25-34,2023-08-05,Seattle,WA,In-Store
-C0146,Noah Thomas,Member,Consumer,Male,25-34,2023-12-18,Los Angeles,CA,Referral
-C0147,Liam Lewis,Member,Consumer,Male,45-54,2023-11-04,Los Angeles,CA,Email Campaign
-C0148,Isla Martin,Member,Consumer,Male,25-34,2023-03-15,Seattle,WA,Organic Search
-C0149,Liam Jones,Member,Small Business,Male,45-54,2024-11-05,Los Angeles,CA,In-Store
-C0150,Amelia Thomas,Member,Consumer,Male,45-54,2023-01-06,Chicago,IL,Email Campaign
-C0151,Oliver Lee 2,Member,Consumer,Male,55+,2023-05-02,New York,NY,Email Campaign
-C0152,Samuel Davis,Member,Small Business,Female,55+,2024-08-18,Houston,TX,Referral
-C0153,Samuel Lee 2,Normal,Consumer,Male,55+,2024-05-07,Boston,MA,Email Campaign
-C0154,Liam Wilson,Member,Small Business,Male,45-54,2022-07-30,New York,NY,Organic Search
-C0155,Isla Garcia,Member,Consumer,Male,18-24,2024-06-14,Boston,MA,Email Campaign
-C0156,Ethan Johnson,Member,Consumer,Female,25-34,2023-04-28,Denver,CO,Organic Search
-C0157,Jack Williams,Normal,Consumer,Male,55+,2023-08-11,Seattle,WA,Email Campaign
-C0158,Alexander Lee 2,Normal,Consumer,Male,45-54,2023-03-18,New York,NY,Email Campaign
-C0159,Layla Williams,Member,Consumer,Male,25-34,2023-05-04,Boston,MA,Paid Social
-C0160,Grace Thompson,Member,Consumer,Female,25-34,2022-10-22,New York,NY,Paid Social
-C0161,Aria Garcia 2,Member,Consumer,Male,35-44,2024-12-13,Los Angeles,CA,Referral
-C0162,Olivia Moore,Member,Consumer,Female,25-34,2024-02-04,Atlanta,GA,Email Campaign
-C0163,Ethan Davis,Normal,Small Business,Female,18-24,2023-11-12,Los Angeles,CA,Paid Social
-C0164,Elijah Lee,Member,Small Business,Non-binary,45-54,2022-05-10,Atlanta,GA,Organic Search
-C0165,James Smith,Normal,Consumer,Prefer not to say,35-44,2023-09-28,Houston,TX,Referral
-C0166,Harper Smith 2,Member,Small Business,Female,45-54,2022-04-08,Houston,TX,Organic Search
-C0167,Mason Martin 2,Normal,Small Business,Female,25-34,2024-03-02,Denver,CO,Referral
-C0168,Mason White 2,Normal,Small Business,Prefer not to say,25-34,2022-06-11,Boston,MA,Organic Search
-C0169,Ella Thomas,Member,Consumer,Male,25-34,2023-09-20,Los Angeles,CA,Organic Search
-C0170,Samuel Taylor,Member,Small Business,Female,35-44,2023-12-24,Atlanta,GA,Referral
-C0171,Sophia Brown 2,Member,Small Business,Female,55+,2022-11-24,Denver,CO,Referral
-C0172,Samuel Smith,Member,Small Business,Non-binary,25-34,2024-01-21,Chicago,IL,Organic Search
-C0173,Noah Lee 2,Member,Small Business,Female,35-44,2022-10-09,Seattle,WA,Referral
-C0174,Leo Williams,Normal,Consumer,Female,55+,2024-03-03,New York,NY,Email Campaign
-C0175,Samuel Miller,Normal,Corporate,Male,18-24,2023-02-14,Boston,MA,Paid Social
-C0176,Samuel Brown 2,Normal,Consumer,Male,55+,2023-08-18,Seattle,WA,Email Campaign
-C0177,Elijah Taylor,Member,Consumer,Male,25-34,2022-10-12,Houston,TX,Paid Social
-C0178,Mason Lee,Member,Consumer,Male,25-34,2023-09-26,Chicago,IL,Paid Social
-C0179,Aria Martin,Member,Consumer,Male,25-34,2022-06-01,Los Angeles,CA,Paid Social
-C0180,Elijah Jones,Member,Small Business,Female,35-44,2022-09-12,Denver,CO,Organic Search
-C0181,Henry Taylor,Normal,Consumer,Female,18-24,2023-07-17,Boston,MA,Referral
-C0182,Oliver Clark,Member,Consumer,Male,45-54,2023-11-23,Chicago,IL,Email Campaign
-C0183,Olivia Brown,Normal,Small Business,Male,35-44,2023-06-27,New York,NY,Paid Social
-C0184,Olivia Thompson,Member,Consumer,Male,45-54,2023-05-17,Boston,MA,Paid Social
-C0185,Mia Smith 2,Member,Consumer,Female,25-34,2023-02-22,Chicago,IL,In-Store
-C0186,Jack Taylor,Member,Consumer,Female,25-34,2022-08-06,Denver,CO,Organic Search
-C0187,Leo Jones,Member,Corporate,Male,25-34,2024-05-06,Los Angeles,CA,Organic Search
-C0188,Jack Clark,Member,Consumer,Male,35-44,2024-11-20,Seattle,WA,Referral
-C0189,Isla Moore,Normal,Consumer,Female,18-24,2023-12-24,Atlanta,GA,Referral
-C0190,Alexander Anderson,Normal,Consumer,Male,45-54,2023-06-26,New York,NY,Paid Social
-C0191,Ruby Smith 2,Member,Consumer,Male,35-44,2024-03-02,Houston,TX,Organic Search
-C0192,Grace Jones 2,Member,Small Business,Female,35-44,2023-11-26,Los Angeles,CA,Organic Search
-C0193,Ruby White 2,Member,Consumer,Male,45-54,2023-11-14,New York,NY,Organic Search
-C0194,Liam Thomas,Member,Corporate,Male,35-44,2023-09-05,Seattle,WA,Referral
-C0195,Benjamin Clark,Member,Consumer,Prefer not to say,35-44,2023-11-10,Boston,MA,Referral
-C0196,Olivia Lewis 2,Member,Consumer,Male,45-54,2023-04-12,Atlanta,GA,Organic Search
-C0197,Zoe Jones,Member,Corporate,Female,25-34,2022-08-14,Houston,TX,Paid Social
-C0198,Aria Miller,Member,Consumer,Male,45-54,2024-08-23,Denver,CO,Organic Search
-C0199,Liam White,Member,Corporate,Female,35-44,2024-09-06,Houston,TX,Organic Search
-C0200,William Harris,Normal,Small Business,Female,35-44,2023-06-26,Seattle,WA,Organic Search
+C0001,Oliver Martin,Member,Consumer,Female,18-24,2023-11-21,Darwin,NT,Paid Social
+C0002,Ethan Lewis,Normal,Small Business,Female,55+,2022-09-13,Hobart,TAS,Referral
+C0003,Mason Clark,Normal,Consumer,Prefer not to say,45-54,2023-04-12,Perth,WA,In-Store
+C0004,Charlotte Moore,Member,Small Business,Female,25-34,2022-11-30,Hobart,TAS,Organic Search
+C0005,Mia Lewis,Member,Consumer,Prefer not to say,25-34,2024-08-04,Melbourne,VIC,Referral
+C0006,Henry Thomas,Member,Consumer,Female,25-34,2023-10-09,Sydney,NSW,In-Store
+C0007,Jack Miller,Member,Corporate,Female,25-34,2024-07-28,Adelaide,SA,Email Campaign
+C0008,Harper Clark,Normal,Consumer,Female,55+,2023-03-26,Canberra,ACT,Referral
+C0009,Sophia Williams,Member,Small Business,Female,35-44,2024-05-14,Melbourne,VIC,Referral
+C0010,Daniel White,Normal,Small Business,Female,35-44,2022-01-24,Hobart,TAS,In-Store
+C0011,Evelyn Thomas,Member,Consumer,Male,55+,2022-01-07,Brisbane,QLD,Organic Search
+C0012,Elijah White,Normal,Consumer,Female,35-44,2024-11-05,Brisbane,QLD,Email Campaign
+C0013,Ava Lewis,Member,Consumer,Male,45-54,2024-01-14,Darwin,NT,Paid Social
+C0014,Sophia Davis,Member,Consumer,Male,55+,2022-05-22,Brisbane,QLD,Organic Search
+C0015,Alexander Harris,Member,Small Business,Male,55+,2024-05-16,Melbourne,VIC,Email Campaign
+C0016,James Anderson,Normal,Consumer,Female,55+,2024-06-16,Canberra,ACT,Organic Search
+C0017,Mia Thomas,Member,Consumer,Male,18-24,2023-03-28,Sydney,NSW,Organic Search
+C0018,Mia Smith,Member,Consumer,Female,25-34,2024-09-21,Darwin,NT,In-Store
+C0019,Alexander Davis,Normal,Consumer,Female,35-44,2022-07-18,Adelaide,SA,Paid Social
+C0020,Sophia Williams 2,Member,Consumer,Female,25-34,2022-08-12,Sydney,NSW,Paid Social
+C0021,Layla Garcia,Member,Small Business,Male,25-34,2022-06-04,Hobart,TAS,Referral
+C0022,Sophia Harris,Normal,Corporate,Male,25-34,2023-04-30,Sydney,NSW,Organic Search
+C0023,Ruby Smith,Member,Corporate,Male,55+,2023-06-28,Melbourne,VIC,Paid Social
+C0024,Benjamin Jones,Member,Corporate,Female,45-54,2022-05-05,Perth,WA,Referral
+C0025,Oliver Smith,Normal,Consumer,Female,35-44,2022-05-20,Brisbane,QLD,Organic Search
+C0026,Leo Clark,Member,Consumer,Female,25-34,2024-12-06,Sydney,NSW,Referral
+C0027,Jack Davis,Member,Consumer,Male,35-44,2023-09-07,Hobart,TAS,In-Store
+C0028,Ava Lee,Member,Consumer,Female,18-24,2023-06-28,Brisbane,QLD,Organic Search
+C0029,Leo Taylor,Member,Small Business,Prefer not to say,35-44,2023-09-12,Hobart,TAS,Referral
+C0030,Ava Harris,Normal,Consumer,Male,25-34,2022-10-03,Hobart,TAS,Email Campaign
+C0031,Noah Wilson,Member,Consumer,Male,35-44,2023-02-21,Hobart,TAS,Referral
+C0032,Harper Smith,Member,Small Business,Male,18-24,2022-04-01,Brisbane,QLD,Referral
+C0033,Harper Garcia,Member,Consumer,Non-binary,18-24,2022-01-20,Adelaide,SA,Referral
+C0034,Noah Harris,Normal,Consumer,Female,25-34,2022-10-31,Sydney,NSW,Paid Social
+C0035,Amelia Taylor,Normal,Consumer,Male,45-54,2023-12-26,Perth,WA,Paid Social
+C0036,Noah Davis,Normal,Small Business,Male,18-24,2024-04-24,Melbourne,VIC,Paid Social
+C0037,Aria Davis,Member,Consumer,Male,45-54,2024-02-23,Hobart,TAS,Organic Search
+C0038,Daniel Taylor,Normal,Small Business,Female,18-24,2023-04-02,Hobart,TAS,Paid Social
+C0039,Mia Wilson,Member,Consumer,Female,55+,2023-11-10,Darwin,NT,In-Store
+C0040,Elijah Clark,Member,Consumer,Female,45-54,2023-12-09,Hobart,TAS,Referral
+C0041,Grace Moore,Member,Consumer,Male,35-44,2022-01-04,Perth,WA,Referral
+C0042,James Taylor,Member,Consumer,Male,35-44,2023-11-08,Canberra,ACT,Organic Search
+C0043,Chloe White,Normal,Consumer,Female,35-44,2023-08-29,Hobart,TAS,Referral
+C0044,Zoe Garcia,Member,Small Business,Female,25-34,2023-09-15,Hobart,TAS,Referral
+C0045,Jack Lee,Member,Consumer,Non-binary,45-54,2024-08-27,Adelaide,SA,Email Campaign
+C0046,Isla Anderson,Member,Corporate,Female,35-44,2023-04-27,Darwin,NT,Organic Search
+C0047,Olivia Smith,Normal,Consumer,Male,35-44,2022-05-30,Perth,WA,Referral
+C0048,Zoe Thompson,Member,Consumer,Male,55+,2022-01-12,Canberra,ACT,In-Store
+C0049,Layla Davis,Normal,Consumer,Female,18-24,2024-08-09,Melbourne,VIC,Email Campaign
+C0050,Daniel Jones,Normal,Corporate,Male,55+,2023-10-12,Adelaide,SA,Referral
+C0051,Layla Harris,Normal,Small Business,Male,35-44,2024-08-30,Adelaide,SA,Email Campaign
+C0052,Evelyn White,Member,Consumer,Female,45-54,2022-06-08,Adelaide,SA,Paid Social
+C0053,Isla Jones,Member,Consumer,Female,18-24,2023-03-15,Melbourne,VIC,Referral
+C0054,Aria Smith,Normal,Consumer,Male,45-54,2022-02-10,Perth,WA,Paid Social
+C0055,Ava Taylor,Normal,Small Business,Male,35-44,2024-05-08,Hobart,TAS,Email Campaign
+C0056,Henry Thompson,Member,Consumer,Male,25-34,2024-03-07,Perth,WA,Paid Social
+C0057,Oliver Lee,Normal,Consumer,Male,35-44,2024-03-17,Melbourne,VIC,Organic Search
+C0058,Layla Jones,Member,Consumer,Female,25-34,2023-11-02,Adelaide,SA,Email Campaign
+C0059,Zoe Wilson,Member,Consumer,Female,45-54,2022-02-09,Canberra,ACT,In-Store
+C0060,Henry Brown,Normal,Corporate,Male,45-54,2023-02-13,Sydney,NSW,Organic Search
+C0061,Alexander Williams,Member,Consumer,Male,25-34,2024-01-26,Perth,WA,Email Campaign
+C0062,Grace Garcia,Member,Consumer,Male,35-44,2023-10-01,Hobart,TAS,Paid Social
+C0063,James Brown,Member,Small Business,Male,45-54,2022-09-05,Perth,WA,Organic Search
+C0064,Layla Taylor,Member,Consumer,Female,45-54,2024-05-10,Brisbane,QLD,In-Store
+C0065,Daniel Jones 2,Member,Consumer,Male,35-44,2023-07-08,Canberra,ACT,Email Campaign
+C0066,Daniel Martin,Member,Consumer,Female,25-34,2022-06-27,Hobart,TAS,Email Campaign
+C0067,Zoe Thomas,Member,Consumer,Male,25-34,2024-09-25,Sydney,NSW,Paid Social
+C0068,Evelyn Harris,Member,Consumer,Male,45-54,2023-05-10,Sydney,NSW,Email Campaign
+C0069,Alexander Thompson,Normal,Consumer,Female,25-34,2023-03-30,Adelaide,SA,Referral
+C0070,Mason Thompson,Member,Small Business,Female,25-34,2023-11-09,Darwin,NT,Paid Social
+C0071,Henry Williams,Member,Small Business,Male,25-34,2023-01-15,Perth,WA,Organic Search
+C0072,Ella Williams,Member,Consumer,Male,18-24,2023-09-12,Perth,WA,Organic Search
+C0073,Sophia Harris 2,Normal,Consumer,Female,18-24,2024-10-02,Hobart,TAS,Paid Social
+C0074,Alexander Lee,Member,Consumer,Female,18-24,2024-09-05,Darwin,NT,Referral
+C0075,Sophia Jones,Normal,Corporate,Female,55+,2022-06-24,Melbourne,VIC,Email Campaign
+C0076,Henry White,Member,Consumer,Male,25-34,2024-05-28,Canberra,ACT,Referral
+C0077,Charlotte Miller,Member,Consumer,Female,25-34,2023-05-07,Perth,WA,Organic Search
+C0078,Samuel Lewis,Member,Consumer,Female,45-54,2023-08-03,Adelaide,SA,Referral
+C0079,Harper Clark 2,Member,Consumer,Male,55+,2022-11-02,Perth,WA,Organic Search
+C0080,Oliver Anderson,Member,Consumer,Non-binary,35-44,2023-09-15,Hobart,TAS,Referral
+C0081,Benjamin Lee,Member,Small Business,Female,35-44,2023-10-23,Brisbane,QLD,Organic Search
+C0082,Olivia Wilson,Normal,Consumer,Male,35-44,2024-11-28,Sydney,NSW,Organic Search
+C0083,Layla Thompson,Member,Consumer,Male,35-44,2023-10-20,Brisbane,QLD,Paid Social
+C0084,Benjamin Anderson,Normal,Consumer,Female,18-24,2024-07-20,Canberra,ACT,Organic Search
+C0085,Ruby White,Normal,Consumer,Male,18-24,2024-04-26,Sydney,NSW,Referral
+C0086,Benjamin Lee 2,Member,Consumer,Male,25-34,2023-08-13,Sydney,NSW,Organic Search
+C0087,Leo Garcia,Member,Consumer,Male,25-34,2022-07-10,Hobart,TAS,Organic Search
+C0088,Grace Jones,Normal,Consumer,Male,25-34,2023-07-14,Adelaide,SA,Paid Social
+C0089,Daniel Harris,Member,Corporate,Female,45-54,2024-11-06,Melbourne,VIC,Organic Search
+C0090,Aria Thomas,Normal,Consumer,Male,45-54,2023-09-04,Hobart,TAS,Referral
+C0091,Noah Lee,Member,Consumer,Female,35-44,2024-02-12,Adelaide,SA,Organic Search
+C0092,Leo Clark 2,Member,Small Business,Male,25-34,2022-03-31,Canberra,ACT,In-Store
+C0093,Zoe Moore,Member,Consumer,Female,55+,2024-10-25,Melbourne,VIC,Organic Search
+C0094,Samuel Williams,Member,Consumer,Male,18-24,2022-11-13,Adelaide,SA,Organic Search
+C0095,Ruby Brown,Normal,Small Business,Male,55+,2024-02-18,Darwin,NT,In-Store
+C0096,Benjamin Harris,Member,Consumer,Male,55+,2023-08-12,Sydney,NSW,Paid Social
+C0097,Charlotte Williams,Member,Consumer,Male,18-24,2022-03-01,Adelaide,SA,Paid Social
+C0098,Mason Martin,Member,Consumer,Female,25-34,2023-01-04,Melbourne,VIC,In-Store
+C0099,Leo Thompson,Member,Consumer,Female,25-34,2024-07-30,Melbourne,VIC,Email Campaign
+C0100,Ella Harris,Member,Corporate,Female,35-44,2023-09-05,Melbourne,VIC,Organic Search
+C0101,Chloe Miller,Normal,Consumer,Male,35-44,2024-02-21,Canberra,ACT,In-Store
+C0102,Ella Johnson,Member,Consumer,Male,55+,2022-04-11,Canberra,ACT,Email Campaign
+C0103,Ella Davis,Member,Consumer,Male,35-44,2023-05-29,Darwin,NT,Referral
+C0104,Liam Williams,Member,Consumer,Female,45-54,2024-01-18,Sydney,NSW,Paid Social
+C0105,Aria Garcia,Member,Consumer,Male,35-44,2024-01-20,Perth,WA,Email Campaign
+C0106,Harper Thompson,Normal,Consumer,Female,35-44,2022-08-24,Hobart,TAS,Email Campaign
+C0107,Henry Moore,Member,Consumer,Female,35-44,2023-06-26,Darwin,NT,Referral
+C0108,Harper Clark 3,Normal,Corporate,Male,35-44,2022-08-10,Canberra,ACT,Referral
+C0109,Jack Lewis,Member,Consumer,Female,55+,2024-08-08,Perth,WA,Paid Social
+C0110,Liam Smith,Member,Consumer,Male,25-34,2022-07-19,Sydney,NSW,Paid Social
+C0111,Mason Harris,Member,Small Business,Male,35-44,2024-04-29,Canberra,ACT,Referral
+C0112,Evelyn Smith,Member,Consumer,Female,45-54,2023-04-29,Darwin,NT,Referral
+C0113,Ethan Smith,Member,Corporate,Female,18-24,2024-07-20,Canberra,ACT,Referral
+C0114,Olivia Smith 2,Member,Consumer,Male,18-24,2023-02-25,Darwin,NT,Organic Search
+C0115,Lucas Davis,Normal,Small Business,Prefer not to say,25-34,2022-01-06,Darwin,NT,In-Store
+C0116,Harper Garcia 2,Normal,Consumer,Male,25-34,2022-01-31,Brisbane,QLD,Referral
+C0117,Olivia Garcia,Member,Small Business,Female,18-24,2024-12-13,Hobart,TAS,Paid Social
+C0118,Mason White,Member,Consumer,Male,45-54,2022-03-30,Brisbane,QLD,Referral
+C0119,Chloe Lee,Member,Consumer,Female,25-34,2024-04-02,Sydney,NSW,Email Campaign
+C0120,Samuel Brown,Member,Consumer,Male,25-34,2022-09-16,Brisbane,QLD,Referral
+C0121,Jack Moore,Member,Consumer,Female,45-54,2022-07-23,Hobart,TAS,Referral
+C0122,Lucas Martin,Normal,Consumer,Male,25-34,2024-07-17,Adelaide,SA,Paid Social
+C0123,Jack Wilson,Normal,Consumer,Male,18-24,2024-08-29,Darwin,NT,Organic Search
+C0124,Charlotte Taylor,Member,Consumer,Female,35-44,2023-11-07,Melbourne,VIC,In-Store
+C0125,Layla Smith,Member,Consumer,Male,25-34,2024-11-05,Hobart,TAS,Organic Search
+C0126,Charlotte Taylor 2,Member,Consumer,Male,45-54,2023-04-09,Darwin,NT,In-Store
+C0127,Olivia Lewis,Member,Consumer,Female,55+,2023-09-25,Hobart,TAS,Organic Search
+C0128,Noah Clark,Member,Small Business,Male,18-24,2022-03-04,Canberra,ACT,Paid Social
+C0129,Daniel Thomas,Member,Small Business,Female,55+,2022-06-23,Melbourne,VIC,Email Campaign
+C0130,Sophia Brown,Member,Consumer,Female,25-34,2024-06-24,Hobart,TAS,Referral
+C0131,Ethan Martin,Member,Consumer,Female,35-44,2024-09-23,Brisbane,QLD,Organic Search
+C0132,Sophia Johnson,Member,Consumer,Female,45-54,2022-10-09,Perth,WA,Organic Search
+C0133,Benjamin Martin,Member,Consumer,Male,35-44,2023-04-17,Melbourne,VIC,Email Campaign
+C0134,Mia Moore,Member,Consumer,Male,45-54,2022-06-09,Sydney,NSW,Referral
+C0135,Aria Anderson,Member,Corporate,Male,45-54,2022-12-18,Brisbane,QLD,Email Campaign
+C0136,Mason Brown,Normal,Consumer,Female,35-44,2024-03-31,Canberra,ACT,Paid Social
+C0137,William Davis,Normal,Consumer,Female,35-44,2022-08-22,Darwin,NT,Email Campaign
+C0138,Ethan Jones,Member,Consumer,Male,35-44,2022-12-22,Perth,WA,Referral
+C0139,Elijah Thompson,Normal,Small Business,Male,35-44,2024-07-08,Adelaide,SA,Referral
+C0140,Jack Thomas,Member,Consumer,Male,45-54,2023-09-13,Melbourne,VIC,Paid Social
+C0141,Mia Anderson,Member,Consumer,Male,18-24,2023-08-11,Adelaide,SA,In-Store
+C0142,Zoe Lee,Member,Small Business,Male,25-34,2023-01-21,Sydney,NSW,Organic Search
+C0143,Sophia Lee,Normal,Small Business,Female,35-44,2022-06-22,Brisbane,QLD,Organic Search
+C0144,Samuel Lee,Member,Corporate,Female,25-34,2024-03-04,Melbourne,VIC,Referral
+C0145,William Brown,Member,Consumer,Male,25-34,2023-08-05,Darwin,NT,In-Store
+C0146,Noah Thomas,Member,Consumer,Male,25-34,2023-12-18,Brisbane,QLD,Referral
+C0147,Liam Lewis,Member,Consumer,Male,45-54,2023-11-04,Brisbane,QLD,Email Campaign
+C0148,Isla Martin,Member,Consumer,Male,25-34,2023-03-15,Darwin,NT,Organic Search
+C0149,Liam Jones,Member,Small Business,Male,45-54,2024-11-05,Brisbane,QLD,In-Store
+C0150,Amelia Thomas,Member,Consumer,Male,45-54,2023-01-06,Melbourne,VIC,Email Campaign
+C0151,Oliver Lee 2,Member,Consumer,Male,55+,2023-05-02,Sydney,NSW,Email Campaign
+C0152,Samuel Davis,Member,Small Business,Female,55+,2024-08-18,Perth,WA,Referral
+C0153,Samuel Lee 2,Normal,Consumer,Male,55+,2024-05-07,Hobart,TAS,Email Campaign
+C0154,Liam Wilson,Member,Small Business,Male,45-54,2022-07-30,Sydney,NSW,Organic Search
+C0155,Isla Garcia,Member,Consumer,Male,18-24,2024-06-14,Hobart,TAS,Email Campaign
+C0156,Ethan Johnson,Member,Consumer,Female,25-34,2023-04-28,Canberra,ACT,Organic Search
+C0157,Jack Williams,Normal,Consumer,Male,55+,2023-08-11,Darwin,NT,Email Campaign
+C0158,Alexander Lee 2,Normal,Consumer,Male,45-54,2023-03-18,Sydney,NSW,Email Campaign
+C0159,Layla Williams,Member,Consumer,Male,25-34,2023-05-04,Hobart,TAS,Paid Social
+C0160,Grace Thompson,Member,Consumer,Female,25-34,2022-10-22,Sydney,NSW,Paid Social
+C0161,Aria Garcia 2,Member,Consumer,Male,35-44,2024-12-13,Brisbane,QLD,Referral
+C0162,Olivia Moore,Member,Consumer,Female,25-34,2024-02-04,Adelaide,SA,Email Campaign
+C0163,Ethan Davis,Normal,Small Business,Female,18-24,2023-11-12,Brisbane,QLD,Paid Social
+C0164,Elijah Lee,Member,Small Business,Non-binary,45-54,2022-05-10,Adelaide,SA,Organic Search
+C0165,James Smith,Normal,Consumer,Prefer not to say,35-44,2023-09-28,Perth,WA,Referral
+C0166,Harper Smith 2,Member,Small Business,Female,45-54,2022-04-08,Perth,WA,Organic Search
+C0167,Mason Martin 2,Normal,Small Business,Female,25-34,2024-03-02,Canberra,ACT,Referral
+C0168,Mason White 2,Normal,Small Business,Prefer not to say,25-34,2022-06-11,Hobart,TAS,Organic Search
+C0169,Ella Thomas,Member,Consumer,Male,25-34,2023-09-20,Brisbane,QLD,Organic Search
+C0170,Samuel Taylor,Member,Small Business,Female,35-44,2023-12-24,Adelaide,SA,Referral
+C0171,Sophia Brown 2,Member,Small Business,Female,55+,2022-11-24,Canberra,ACT,Referral
+C0172,Samuel Smith,Member,Small Business,Non-binary,25-34,2024-01-21,Melbourne,VIC,Organic Search
+C0173,Noah Lee 2,Member,Small Business,Female,35-44,2022-10-09,Darwin,NT,Referral
+C0174,Leo Williams,Normal,Consumer,Female,55+,2024-03-03,Sydney,NSW,Email Campaign
+C0175,Samuel Miller,Normal,Corporate,Male,18-24,2023-02-14,Hobart,TAS,Paid Social
+C0176,Samuel Brown 2,Normal,Consumer,Male,55+,2023-08-18,Darwin,NT,Email Campaign
+C0177,Elijah Taylor,Member,Consumer,Male,25-34,2022-10-12,Perth,WA,Paid Social
+C0178,Mason Lee,Member,Consumer,Male,25-34,2023-09-26,Melbourne,VIC,Paid Social
+C0179,Aria Martin,Member,Consumer,Male,25-34,2022-06-01,Brisbane,QLD,Paid Social
+C0180,Elijah Jones,Member,Small Business,Female,35-44,2022-09-12,Canberra,ACT,Organic Search
+C0181,Henry Taylor,Normal,Consumer,Female,18-24,2023-07-17,Hobart,TAS,Referral
+C0182,Oliver Clark,Member,Consumer,Male,45-54,2023-11-23,Melbourne,VIC,Email Campaign
+C0183,Olivia Brown,Normal,Small Business,Male,35-44,2023-06-27,Sydney,NSW,Paid Social
+C0184,Olivia Thompson,Member,Consumer,Male,45-54,2023-05-17,Hobart,TAS,Paid Social
+C0185,Mia Smith 2,Member,Consumer,Female,25-34,2023-02-22,Melbourne,VIC,In-Store
+C0186,Jack Taylor,Member,Consumer,Female,25-34,2022-08-06,Canberra,ACT,Organic Search
+C0187,Leo Jones,Member,Corporate,Male,25-34,2024-05-06,Brisbane,QLD,Organic Search
+C0188,Jack Clark,Member,Consumer,Male,35-44,2024-11-20,Darwin,NT,Referral
+C0189,Isla Moore,Normal,Consumer,Female,18-24,2023-12-24,Adelaide,SA,Referral
+C0190,Alexander Anderson,Normal,Consumer,Male,45-54,2023-06-26,Sydney,NSW,Paid Social
+C0191,Ruby Smith 2,Member,Consumer,Male,35-44,2024-03-02,Perth,WA,Organic Search
+C0192,Grace Jones 2,Member,Small Business,Female,35-44,2023-11-26,Brisbane,QLD,Organic Search
+C0193,Ruby White 2,Member,Consumer,Male,45-54,2023-11-14,Sydney,NSW,Organic Search
+C0194,Liam Thomas,Member,Corporate,Male,35-44,2023-09-05,Darwin,NT,Referral
+C0195,Benjamin Clark,Member,Consumer,Prefer not to say,35-44,2023-11-10,Hobart,TAS,Referral
+C0196,Olivia Lewis 2,Member,Consumer,Male,45-54,2023-04-12,Adelaide,SA,Organic Search
+C0197,Zoe Jones,Member,Corporate,Female,25-34,2022-08-14,Perth,WA,Paid Social
+C0198,Aria Miller,Member,Consumer,Male,45-54,2024-08-23,Canberra,ACT,Organic Search
+C0199,Liam White,Member,Corporate,Female,35-44,2024-09-06,Perth,WA,Organic Search
+C0200,William Harris,Normal,Small Business,Female,35-44,2023-06-26,Darwin,NT,Organic Search

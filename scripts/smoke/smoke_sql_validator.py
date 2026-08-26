@@ -18,7 +18,7 @@ def main() -> None:
                     category,
                     COUNT(*) AS product_count
                 FROM
-                    `sql-bigquery-502206.business_insights.dim_products`
+                    `your-project-id.business_insights.dim_products`
                 GROUP BY
                     category
             """,
@@ -32,7 +32,7 @@ def main() -> None:
                         product_id,
                         SUM(net_revenue) AS revenue
                     FROM
-                        `sql-bigquery-502206.business_insights.fact_sales`
+                        `your-project-id.business_insights.fact_sales`
                     GROUP BY
                         product_id
                 )
@@ -45,7 +45,7 @@ def main() -> None:
             "name": "DELETE statement",
             "sql": """
                 DELETE FROM
-                    `sql-bigquery-502206.business_insights.fact_sales`
+                    `your-project-id.business_insights.fact_sales`
                 WHERE sale_id = 'S000001'
             """,
             "expected_valid": False,
@@ -54,7 +54,7 @@ def main() -> None:
             "name": "CREATE statement",
             "sql": """
                 CREATE TABLE
-                    `sql-bigquery-502206.business_insights.temporary_table`
+                    `your-project-id.business_insights.temporary_table`
                 AS
                 SELECT 1 AS value
             """,
@@ -73,7 +73,7 @@ def main() -> None:
             "sql": """
                 SELECT (
                 FROM
-                    `sql-bigquery-502206.business_insights.fact_sales`
+                    `your-project-id.business_insights.fact_sales`
             """,
             "expected_valid": False,
         },

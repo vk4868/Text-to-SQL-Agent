@@ -25,7 +25,7 @@ def pipeline():
     # Configured to match the dataset the attack cases name.
     return SQLExecutionPipeline(
         bigquery_service=FakeBigQueryService(
-            project_id="sql-bigquery-502206",
+            project_id="your-project-id",
             dataset_id="business_insights",
         )
     )
@@ -106,7 +106,7 @@ class TestComputedLimitIsFoldedNotRejected:
     def test_a_computed_limit_is_folded_and_capped(self, pipeline):
         result = pipeline.execute(
             "SELECT sale_id "
-            "FROM `sql-bigquery-502206.business_insights.fact_sales` "
+            "FROM `your-project-id.business_insights.fact_sales` "
             "LIMIT 10 + 90"
         )
 
@@ -119,7 +119,7 @@ class TestComputedLimitIsFoldedNotRejected:
 
         result = pipeline.execute(
             "SELECT sale_id "
-            "FROM `sql-bigquery-502206.business_insights.fact_sales` "
+            "FROM `your-project-id.business_insights.fact_sales` "
             "LIMIT 50 + 500"
         )
 
@@ -133,7 +133,7 @@ class TestComputedLimitIsFoldedNotRejected:
 
         result = pipeline.execute(
             "SELECT sale_id "
-            "FROM `sql-bigquery-502206.business_insights.fact_sales` "
+            "FROM `your-project-id.business_insights.fact_sales` "
             "LIMIT @row_count"
         )
 

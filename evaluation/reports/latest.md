@@ -63,7 +63,7 @@ SELECT
     t1.branch_region,
     SUM(t1.net_revenue) AS total_net_revenue
 FROM
-    `sql-bigquery-502206.business_insights.fact_sales` AS t1
+    `your-project-id.business_insights.fact_sales` AS t1
 WHERE
     t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')
 GROUP BY 1
@@ -75,7 +75,7 @@ Reference SQL:
 SELECT
   branch_region,
   SUM(net_revenue) AS total_net_revenue
-FROM `sql-bigquery-502206.business_insights.fact_sales`
+FROM `your-project-id.business_insights.fact_sales`
 WHERE sale_date BETWEEN '2025-01-01' AND '2025-12-31'
 GROUP BY branch_region
 ```
@@ -93,9 +93,9 @@ SELECT
     t2.category,
     CAST(SUM(t1.profit_amount) AS NUMERIC) / NULLIF(SUM(t1.net_revenue), 0) AS profit_margin_percentage
 FROM
-    `sql-bigquery-502206.business_insights.fact_sales` AS t1
+    `your-project-id.business_insights.fact_sales` AS t1
 INNER JOIN
-    `sql-bigquery-502206.business_insights.dim_products` AS t2 ON t1.product_id = t2.product_id
+    `your-project-id.business_insights.dim_products` AS t2 ON t1.product_id = t2.product_id
 WHERE
     t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')
 GROUP BY
@@ -109,8 +109,8 @@ SELECT
   p.category,
   SAFE_DIVIDE(SUM(f.profit_amount), SUM(f.net_revenue)) * 100
     AS profit_margin_pct
-FROM `sql-bigquery-502206.business_insights.fact_sales` AS f
-JOIN `sql-bigquery-502206.business_insights.dim_products` AS p
+FROM `your-project-id.business_insights.fact_sales` AS f
+JOIN `your-project-id.business_insights.dim_products` AS p
   ON f.product_id = p.product_id
 WHERE f.sale_date BETWEEN '2025-01-01' AND '2025-12-31'
 GROUP BY p.category
@@ -129,7 +129,7 @@ SELECT
     t1.sales_channel,
     SUM(t1.net_revenue) AS total_net_revenue
 FROM
-    `sql-bigquery-502206.business_insights.fact_sales` AS t1
+    `your-project-id.business_insights.fact_sales` AS t1
 WHERE
     t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')
 GROUP BY 1
@@ -141,7 +141,7 @@ Reference SQL:
 SELECT
   sales_channel,
   SUM(net_revenue) AS total_net_revenue
-FROM `sql-bigquery-502206.business_insights.fact_sales`
+FROM `your-project-id.business_insights.fact_sales`
 WHERE sale_date BETWEEN '2025-01-01' AND '2025-12-31'
 GROUP BY sales_channel
 ```
@@ -159,9 +159,9 @@ SELECT
     t2.category,
     SUM(t1.quantity) AS total_units_sold
 FROM
-    `sql-bigquery-502206.business_insights.fact_sales` AS t1
+    `your-project-id.business_insights.fact_sales` AS t1
 INNER JOIN
-    `sql-bigquery-502206.business_insights.dim_products` AS t2 ON t1.product_id = t2.product_id
+    `your-project-id.business_insights.dim_products` AS t2 ON t1.product_id = t2.product_id
 WHERE
     t1.sale_date BETWEEN DATE('2025-01-01') AND DATE('2025-12-31')
 GROUP BY
@@ -174,8 +174,8 @@ Reference SQL:
 SELECT
   p.category,
   SUM(f.quantity) AS total_quantity
-FROM `sql-bigquery-502206.business_insights.fact_sales` AS f
-JOIN `sql-bigquery-502206.business_insights.dim_products` AS p
+FROM `your-project-id.business_insights.fact_sales` AS f
+JOIN `your-project-id.business_insights.dim_products` AS p
   ON f.product_id = p.product_id
 WHERE f.sale_date BETWEEN '2025-01-01' AND '2025-12-31'
 GROUP BY p.category

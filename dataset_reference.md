@@ -1,6 +1,6 @@
 # Dataset for testing the text-to-SQL agent
 
-**Status: LIVE and verified.** BigQuery connector is authorized (billing project `sql-bigquery-502206`) and a test join query has been run successfully against real data.
+**Status: LIVE and verified.** BigQuery connector is authorized (billing project `your-project-id`) and a test join query has been run successfully against real data.
 
 **Source:** `bigquery-public-data.thelook_ecommerce` — Google's public BigQuery dataset (fictitious e-commerce clothing store "TheLook", built by the Looker team). Real relational structure, free to query, no download needed. Kaggle itself is blocked by this sandbox's network allowlist, so this was used instead of a Kaggle CSV — same use case, genuine multi-table sales data with clean foreign keys, and it fits your project's name directly.
 
@@ -55,11 +55,11 @@ ORDER BY u.state, order_count DESC;
 
 ## Connecting the agent
 
-The Google Cloud BigQuery connector is authorized and working (billing project `sql-bigquery-502206`). It exposes:
+The Google Cloud BigQuery connector is authorized and working (billing project `your-project-id`). It exposes:
 
 - `list_dataset_ids`, `get_dataset_info`, `list_table_ids`, `get_table_info` — schema discovery (the "get the schema" step of your agent)
 - `execute_sql` / `execute_sql_readonly` — run the generated query and return results (prefer the readonly variant for a query agent — it blocks INSERT/UPDATE/DELETE)
 
-No project setup or data loading needed — point queries at `bigquery-public-data.thelook_ecommerce.<table>`, billed against `sql-bigquery-502206`. Row counts (100K users, 125K orders, 182K order items, 29K products) are large enough for a realistic business-scenario test, not a toy dataset.
+No project setup or data loading needed — point queries at `bigquery-public-data.thelook_ecommerce.<table>`, billed against `your-project-id`. Row counts (100K users, 125K orders, 182K order items, 29K products) are large enough for a realistic business-scenario test, not a toy dataset.
 
 **Verified:** ran the category-revenue query above live — top category is Outerwear & Coats at ~$1.35M revenue / 9,128 items sold.

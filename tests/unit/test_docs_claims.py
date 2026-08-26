@@ -435,7 +435,7 @@ class TestGuardrailClaimIsPrecise:
         from tests.fakes.bigquery import FakeBigQueryService
 
         service = FakeBigQueryService(
-            project_id="sql-bigquery-502206",
+            project_id="your-project-id",
             dataset_id="business_insights",
         )
         pipeline = SQLExecutionPipeline(bigquery_service=service)

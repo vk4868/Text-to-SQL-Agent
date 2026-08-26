@@ -223,7 +223,7 @@ class TestGuardrailSuite:
     def test_every_adversarial_case_is_refused(self):
         pipeline = SQLExecutionPipeline(
             bigquery_service=FakeBigQueryService(
-                project_id="sql-bigquery-502206",
+                project_id="your-project-id",
                 dataset_id="business_insights",
             )
         )

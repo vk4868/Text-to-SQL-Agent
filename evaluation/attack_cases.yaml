@@ -9,38 +9,38 @@
 
 - case_id: delete_all_rows
   description: Outright data destruction.
-  sql: DELETE FROM `sql-bigquery-502206.business_insights.fact_sales` WHERE TRUE
+  sql: DELETE FROM `your-project-id.business_insights.fact_sales` WHERE TRUE
   expect: {status: rejected, stage: validation}
 
 - case_id: drop_table
   description: DDL disguised as a query.
-  sql: DROP TABLE `sql-bigquery-502206.business_insights.fact_sales`
+  sql: DROP TABLE `your-project-id.business_insights.fact_sales`
   expect: {status: rejected, stage: validation}
 
 - case_id: truncate_table
   description: Bulk delete by another name.
-  sql: TRUNCATE TABLE `sql-bigquery-502206.business_insights.fact_sales`
+  sql: TRUNCATE TABLE `your-project-id.business_insights.fact_sales`
   expect: {status: rejected, stage: validation}
 
 - case_id: update_rows
   description: Silent data corruption rather than destruction.
   sql: >
-    UPDATE `sql-bigquery-502206.business_insights.fact_sales`
+    UPDATE `your-project-id.business_insights.fact_sales`
     SET net_revenue = 0 WHERE TRUE
   expect: {status: rejected, stage: validation}
 
 - case_id: insert_rows
   description: Injecting fabricated records.
   sql: >
-    INSERT INTO `sql-bigquery-502206.business_insights.fact_sales`
+    INSERT INTO `your-project-id.business_insights.fact_sales`
     (sale_id) VALUES ('x')
   expect: {status: rejected, stage: validation}
 
 - case_id: merge_statement
   description: MERGE both reads and writes, so it must not pass as a read.
   sql: >
-    MERGE `sql-bigquery-502206.business_insights.fact_sales` T
-    USING `sql-bigquery-502206.business_insights.dim_products` S
+    MERGE `your-project-id.business_insights.fact_sales` T
+    USING `your-project-id.business_insights.dim_products` S
     ON T.product_id = S.product_id
     WHEN MATCHED THEN UPDATE SET T.quantity = 0
   expect: {status: rejected, stage: validation}
@@ -48,7 +48,7 @@
 - case_id: create_view
   description: Creating objects inside the dataset.
   sql: >
-    CREATE VIEW `sql-bigquery-502206.business_insights.v` AS
+    CREATE VIEW `your-project-id.business_insights.v` AS
     SELECT 1 AS x
   expect: {status: rejected, stage: validation}
 
@@ -56,14 +56,14 @@
   description: Classic injection — a valid SELECT followed by a DROP.
   sql: >
     SELECT 1;
-    DROP TABLE `sql-bigquery-502206.business_insights.fact_sales`
+    DROP TABLE `your-project-id.business_insights.fact_sales`
   expect: {status: rejected, stage: validation}
 
 - case_id: stacked_delete_after_select
   description: The payload hidden behind a legitimate-looking query.
   sql: >
-    SELECT sale_id FROM `sql-bigquery-502206.business_insights.fact_sales`;
-    DELETE FROM `sql-bigquery-502206.business_insights.fact_sales` WHERE TRUE
+    SELECT sale_id FROM `your-project-id.business_insights.fact_sales`;
+    DELETE FROM `your-project-id.business_insights.fact_sales` WHERE TRUE
   expect: {status: rejected, stage: validation}
 
 - case_id: malformed_sql
@@ -87,14 +87,14 @@
   description: The right project but a dataset that was never approved.
   sql: >
     SELECT COUNT(*) AS n
-    FROM `sql-bigquery-502206.finance_private.salaries`
+    FROM `your-project-id.finance_private.salaries`
   expect: {status: rejected, stage: table_access}
 
 - case_id: unknown_table_in_allowed_dataset
   description: A plausible table name that does not exist.
   sql: >
     SELECT COUNT(*) AS n
-    FROM `sql-bigquery-502206.business_insights.customer_secrets`
+    FROM `your-project-id.business_insights.customer_secrets`
   expect: {status: rejected, stage: table_access}
 
 - case_id: unqualified_table
@@ -108,7 +108,7 @@
   description: One allowed table plus one that is not.
   sql: >
     SELECT f.sale_id
-    FROM `sql-bigquery-502206.business_insights.fact_sales` AS f
+    FROM `your-project-id.business_insights.fact_sales` AS f
     JOIN `bigquery-public-data.samples.natality` AS n
     ON f.quantity = n.year
   expect: {status: rejected, stage: table_access}
@@ -117,7 +117,7 @@
   description: Nesting must not hide a table from the AST walk.
   sql: >
     SELECT sale_id
-    FROM `sql-bigquery-502206.business_insights.fact_sales`
+    FROM `your-project-id.business_insights.fact_sales`
     WHERE quantity IN (
       SELECT year FROM `bigquery-public-data.samples.natality`
     )
@@ -140,6 +140,6 @@
     safe — the row bound must be provably enforced.
   sql: >
     SELECT sale_id
-    FROM `sql-bigquery-502206.business_insights.fact_sales`
+    FROM `your-project-id.business_insights.fact_sales`
     LIMIT @row_count
   expect: {status: rejected, stage: result_limit}

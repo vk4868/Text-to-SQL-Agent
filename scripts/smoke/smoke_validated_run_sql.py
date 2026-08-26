@@ -13,7 +13,7 @@ def main() -> None:
                     category,
                     COUNT(*) AS product_count
                 FROM
-                    `sql-bigquery-502206.business_insights.dim_products`
+                    `your-project-id.business_insights.dim_products`
                 GROUP BY
                     category
                 ORDER BY
@@ -25,7 +25,7 @@ def main() -> None:
             "name": "Unsafe DELETE",
             "sql": """
                 DELETE FROM
-                    `sql-bigquery-502206.business_insights.fact_sales`
+                    `your-project-id.business_insights.fact_sales`
                 WHERE
                     sale_id = 'S000001'
             """,
@@ -36,7 +36,7 @@ def main() -> None:
                 SELECT
                     column_that_does_not_exist
                 FROM
-                    `sql-bigquery-502206.business_insights.dim_products`
+                    `your-project-id.business_insights.dim_products`
             """,
         },
     ]
