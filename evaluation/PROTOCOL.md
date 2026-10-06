@@ -253,7 +253,11 @@ counts, sizes, location, partitioning, clustering and column schema (table
 last-modified time is not exposed by the reader interface and is not
 recorded); CSV-versus-BigQuery reconciliation: numeric aggregates per table and, for
 every string and date column, the distinct-value count and a hash of the
-sorted distinct values, each with a match flag; the SHA-256 of the
+sorted distinct values, each with a match flag; and, in the separate dataset
+check artifact, a keyed row-level fingerprint per table (every column of
+every row in key order, canonicalised identically on both sides) plus
+foreign-key orphan counts, because distinct-value sets cannot detect swapped
+row associations; the SHA-256 of the
 expected-facts annex; Ollama server version, model tag, digest, family, parameter size and
 quantisation; temperature, timeout and host; every cap in `src/config.py`;
 run-record version, manifest version, registry version (none before Phase
@@ -269,6 +273,7 @@ matching snapshots.
 |---|---|---|
 | `evaluation/reports/latest.{md,json}` | historical 2026-08-25 report quoted by the README | preserved unchanged |
 | `evaluation/reports/before_semantic_gate.{md,json}` | Phase 1 report with manifest, per-trial and pooled figures, supplementary measures | yes |
+| `evaluation/reports/before_semantic_gate_dataset_check.json` | keyed row-level fingerprints and foreign-key counts, CSV versus live, from `python -m evaluation.dataset_check` | yes |
 | `evaluation/reports/before_semantic_gate_runs.jsonl` | evidence extracted from the evaluation run log by `python -m evaluation.evidence`: the `graph_run` record of each of the 45 case runs plus their linked `sql_execution` records, with `case_id` and `trial` added and the project id redacted | yes, under plan.md's allowance for the bundled synthetic dataset |
 | `evaluation/reports/after_semantic_gate.{md,json}`, `semantic_gate_comparison.md` | Phase 7 | later |
 
@@ -319,7 +324,14 @@ GCP_PROJECT_ID=<project> uv run python -m evaluation.run_evaluation \
 uv run python -m evaluation.evidence --runs <scratch>/before_runs.jsonl \
   --report evaluation/reports/before_semantic_gate.json \
   --out evaluation/reports/before_semantic_gate_runs.jsonl
+GCP_PROJECT_ID=<project> uv run python -m evaluation.dataset_check \
+  --out evaluation/reports/before_semantic_gate_dataset_check.json
 ```
+
+The dataset check is the keyed row-level comparison (section 7) and must
+report `all_match: true` on the same data the report was measured on; the
+evidence export exits non-zero when any graph run or linked SQL execution
+named by the report is missing from the run log.
 
 The guardrail suite runs once per invocation, which with in-process trials is
 once per report.

@@ -59,6 +59,8 @@ def extract_evidence(
     counter = {"stripped": 0}
     kept: list[dict[str, Any]] = []
     missing: list[str] = []
+    missing_sql: list[dict[str, Any]] = []
+    linked_total = 0
     graph_count = 0
     sql_count = 0
     seen_sql: set[str] = set()
@@ -82,11 +84,22 @@ def extract_evidence(
         linked = (record.get("runtime") or {}).get(
             "sql_execution_run_ids"
         ) or []
+        linked_total += len(linked)
         for sql_id in linked:
             if str(sql_id) in seen_sql:
                 continue
             seen_sql.add(str(sql_id))
-            for sql_record in sql_runs.get(str(sql_id), []):
+            found = sql_runs.get(str(sql_id), [])
+            if not found:
+                missing_sql.append(
+                    {
+                        "graph_run_id": str(run_id),
+                        "case_id": case.get("case_id"),
+                        "trial": case.get("trial"),
+                        "run_id": str(sql_id),
+                    }
+                )
+            for sql_record in found:
                 kept.append(_strip_forbidden(sql_record, counter))
                 sql_count += 1
 
@@ -95,7 +108,9 @@ def extract_evidence(
     summary = {
         "graph_runs": graph_count,
         "sql_executions": sql_count,
+        "linked_sql_execution_ids_total": linked_total,
         "missing_graph_run_ids": missing,
+        "missing_sql_execution_ids": missing_sql,
         "stripped_keys": counter["stripped"],
     }
     return kept, summary
@@ -192,11 +207,18 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"graph_run kept: {summary['graph_runs']}\n"
         f"sql_execution kept: {summary['sql_executions']}\n"
         f"stripped keys: {summary['stripped_keys']}\n"
-        f"missing graph_run_ids: {summary['missing_graph_run_ids']}",
+        f"linked sql_execution ids: "
+        f"{summary['linked_sql_execution_ids_total']}\n"
+        f"missing graph_run_ids: {summary['missing_graph_run_ids']}\n"
+        f"missing sql_execution ids: {summary['missing_sql_execution_ids']}",
         file=sys.stderr,
     )
 
-    return 1 if summary["missing_graph_run_ids"] else 0
+    incomplete = (
+        summary["missing_graph_run_ids"]
+        or summary["missing_sql_execution_ids"]
+    )
+    return 1 if incomplete else 0
 
 
 if __name__ == "__main__":

@@ -91,6 +91,52 @@ class TestExtractEvidence:
         assert any(r.get("analysis") == {"ok": 1} for r in kept)
 
 
+class TestMissingSqlExecutions:
+    def _records(self):
+        return [
+            graph_run("g-a1", ["s-a1", "s-gone"]),
+            sql_exec("s-a1"),
+        ]
+
+    def _report(self):
+        return {"cases": [{"case_id": "a", "trial": 1, "graph_run_id": "g-a1"}]}
+
+    def test_unrecorded_linked_id_is_reported(self):
+        _, summary = extract_evidence(self._report(), self._records(), REAL)
+
+        assert summary["missing_sql_execution_ids"] == [
+            {"graph_run_id": "g-a1", "case_id": "a", "trial": 1,
+             "run_id": "s-gone"}
+        ]
+        assert summary["linked_sql_execution_ids_total"] == 2
+        assert summary["sql_executions"] == 1
+
+    def test_complete_case_has_no_missing(self):
+        _, summary = extract_evidence(report(), records(), REAL)
+
+        assert summary["missing_sql_execution_ids"] == []
+        assert summary["linked_sql_execution_ids_total"] == 4
+        assert summary["sql_executions"] == 4
+
+    def test_main_exits_one_but_still_writes(self, tmp_path, capsys):
+        runs = tmp_path / "runs.jsonl"
+        runs.write_text(
+            "\n".join(json.dumps(r) for r in self._records()) + "\n"
+        )
+        rep = tmp_path / "rep.json"
+        rep.write_text(json.dumps(self._report()))
+        out = tmp_path / "o.jsonl"
+
+        code = main(
+            ["--runs", str(runs), "--report", str(rep),
+             "--out", str(out), "--project-id", REAL]
+        )
+
+        assert code == 1
+        assert out.exists()
+        assert "s-gone" in capsys.readouterr().err
+
+
 class TestCli:
     def test_main_writes_jsonl(self, tmp_path, capsys):
         runs = tmp_path / "runs.jsonl"
