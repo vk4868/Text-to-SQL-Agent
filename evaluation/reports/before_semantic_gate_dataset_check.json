@@ -1,0 +1,73 @@
+{
+  "fact_sales": {
+    "csv": {
+      "row_count": 1260,
+      "distinct_keys": 1260,
+      "row_sha256": "4c9e3af2043b45d37498888ee4a65b46bd8cb4a547171ef3ad460ead1794cec5"
+    },
+    "bigquery": {
+      "row_count": 1260,
+      "distinct_keys": 1260,
+      "row_sha256": "4c9e3af2043b45d37498888ee4a65b46bd8cb4a547171ef3ad460ead1794cec5",
+      "evidence": {
+        "run_id": "35bf10b3-2fa7-4b46-8d3e-e6169ac3a028",
+        "job_id": "8a8fd99f-e3e2-463b-973a-9b4199d90863",
+        "executed_sql": "SELECT\n  COUNT(*) AS row_count,\n  COUNT(DISTINCT sale_id) AS distinct_keys,\n  TO_HEX(\n    SHA256(\n      STRING_AGG(\n        \n          CONCAT(\n            IFNULL(CAST(sale_id AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(sale_date AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(branch_id AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(branch_city AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(branch_state AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(branch_region AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(customer_id AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(product_id AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(quantity AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(unit_price AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(discount_pct AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(gross_revenue AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(discount_amount AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(net_revenue AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(tax_amount AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(total_price AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(cost_amount AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(profit_amount AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(reward_points AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(payment_method AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(sales_channel AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(promotion_type AS STRING), '')\n          ),\n          '\\n'\n        \n        ORDER BY\n          sale_id\n      )\n    )\n  ) AS row_sha256\nFROM `your-project-id.business_insights.fact_sales`\nLIMIT 100"
+      }
+    },
+    "match": true
+  },
+  "dim_customers": {
+    "csv": {
+      "row_count": 200,
+      "distinct_keys": 200,
+      "row_sha256": "05ec7f3993ca54292a796eff4be29dccf6b99a6bc75b1622f8f42609c85eef2b"
+    },
+    "bigquery": {
+      "row_count": 200,
+      "distinct_keys": 200,
+      "row_sha256": "05ec7f3993ca54292a796eff4be29dccf6b99a6bc75b1622f8f42609c85eef2b",
+      "evidence": {
+        "run_id": "3017650b-1fa3-4d87-8af5-a5633807c26a",
+        "job_id": "99f72d86-465a-4e0e-973f-2effc1b70783",
+        "executed_sql": "SELECT\n  COUNT(*) AS row_count,\n  COUNT(DISTINCT customer_id) AS distinct_keys,\n  TO_HEX(\n    SHA256(\n      STRING_AGG(\n        \n          CONCAT(\n            IFNULL(CAST(customer_id AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(customer_name AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(membership_status AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(customer_segment AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(gender AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(age_group AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(signup_date AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(home_city AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(home_state AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(acquisition_channel AS STRING), '')\n          ),\n          '\\n'\n        \n        ORDER BY\n          customer_id\n      )\n    )\n  ) AS row_sha256\nFROM `your-project-id.business_insights.dim_customers`\nLIMIT 100"
+      }
+    },
+    "match": true
+  },
+  "dim_products": {
+    "csv": {
+      "row_count": 40,
+      "distinct_keys": 40,
+      "row_sha256": "5f0222f47164e6a8f265a2f4e7a25ca0d99803efe6606535daacfdd748230877"
+    },
+    "bigquery": {
+      "row_count": 40,
+      "distinct_keys": 40,
+      "row_sha256": "5f0222f47164e6a8f265a2f4e7a25ca0d99803efe6606535daacfdd748230877",
+      "evidence": {
+        "run_id": "e741f36c-19f9-4514-9101-2efaa60b7c1e",
+        "job_id": "aa36bb6f-8a9c-4bb2-8e9a-f4d592e81886",
+        "executed_sql": "SELECT\n  COUNT(*) AS row_count,\n  COUNT(DISTINCT product_id) AS distinct_keys,\n  TO_HEX(\n    SHA256(\n      STRING_AGG(\n        \n          CONCAT(\n            IFNULL(CAST(product_id AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(product_name AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(category AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(subcategory AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(brand AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(unit_cost AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(list_price AS STRING), ''),\n            '\\t',\n            IFNULL(CAST(launch_date AS STRING), '')\n          ),\n          '\\n'\n        \n        ORDER BY\n          product_id\n      )\n    )\n  ) AS row_sha256\nFROM `your-project-id.business_insights.dim_products`\nLIMIT 100"
+      }
+    },
+    "match": true
+  },
+  "foreign_keys": {
+    "csv": {
+      "orphan_customers": 0,
+      "orphan_products": 0
+    },
+    "bigquery": {
+      "orphan_customers": 0,
+      "orphan_products": 0,
+      "evidence": {
+        "run_id": "4cb7b4ec-3f58-48b2-baa1-bf64b49355cf",
+        "job_id": "c30d24b1-6541-4a8c-8958-434e7baa64c6",
+        "executed_sql": "SELECT\n  COUNTIF(c.customer_id IS NULL) AS orphan_customers,\n  COUNTIF(p.product_id IS NULL) AS orphan_products\nFROM `your-project-id.business_insights.fact_sales` AS f\nLEFT JOIN `your-project-id.business_insights.dim_customers` AS c\n  USING (customer_id)\nLEFT JOIN `your-project-id.business_insights.dim_products` AS p\n  USING (product_id)\nLIMIT 100"
+      }
+    },
+    "match": true
+  },
+  "all_match": true
+}
