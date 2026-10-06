@@ -11,12 +11,25 @@ from typing import Any
 
 import yaml
 
+from src import config
+
 EVALUATION_DIR = Path(__file__).resolve().parent
 
 ATTACK_CASES_PATH = EVALUATION_DIR / "attack_cases.yaml"
 GOLDEN_CASES_PATH = EVALUATION_DIR / "golden_cases.yaml"
 
 VALID_COMPARISONS = {"multiset", "ordered", "scalar", "none"}
+
+# The case files hardcode this id; a live run substitutes the real one.
+PROJECT_PLACEHOLDER = "your-project-id"
+
+
+def resolve_project_id(sql_or_text: str, project_id: str) -> str:
+    """Swap the placeholder project id for ``project_id``."""
+
+    if not project_id or project_id == PROJECT_PLACEHOLDER:
+        return sql_or_text
+    return sql_or_text.replace(PROJECT_PLACEHOLDER, project_id)
 
 
 @dataclass(frozen=True)
@@ -77,8 +90,13 @@ def _require_unique_ids(case_ids: list[str], source: str) -> None:
 
 def load_attack_cases(
     path: Path = ATTACK_CASES_PATH,
+    *,
+    project_id: str | None = None,
 ) -> list[AttackCase]:
     """Load the adversarial guardrail cases."""
+
+    if project_id is None:
+        project_id = config.PROJECT_ID
 
     cases: list[AttackCase] = []
 
@@ -99,7 +117,7 @@ def load_attack_cases(
         cases.append(
             AttackCase(
                 case_id=case_id,
-                sql=str(raw["sql"]),
+                sql=resolve_project_id(str(raw["sql"]), project_id),
                 expected_status=str(expect["status"]),
                 expected_stage=str(expect["stage"]),
                 description=str(raw.get("description", "")),
@@ -113,8 +131,13 @@ def load_attack_cases(
 
 def load_golden_cases(
     path: Path = GOLDEN_CASES_PATH,
+    *,
+    project_id: str | None = None,
 ) -> list[GoldenCase]:
     """Load the question-answering cases."""
+
+    if project_id is None:
+        project_id = config.PROJECT_ID
 
     cases: list[GoldenCase] = []
 
@@ -148,8 +171,11 @@ def load_golden_cases(
                 case_id=case_id,
                 question=str(raw["question"]),
                 category=str(raw["category"]),
-                reference_sql=reference_sql,
-                expected_tables=list(expect.get("referenced_tables", [])),
+                reference_sql=resolve_project_id(reference_sql, project_id),
+                expected_tables=[
+                    resolve_project_id(str(table), project_id)
+                    for table in expect.get("referenced_tables", [])
+                ],
                 must_use_columns=list(expect.get("must_use_columns", [])),
                 comparison=comparison,
                 numeric_tolerance=float(

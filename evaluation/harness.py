@@ -34,6 +34,10 @@ class CaseResult:
     reference_rows: list[dict[str, Any]] = field(default_factory=list)
     reference_error: str = ""
     duration_ms: float = 0.0
+    trial: int = 1
+    execution_succeeded: bool = False
+    failure_class: str = ""
+    supplementary: list[ScoreResult] = field(default_factory=list)
 
     @property
     def passed(self) -> bool:
@@ -57,6 +61,69 @@ class CaseResult:
         return int(
             self.record.get("sql", {}).get("repair_attempts", 0) or 0
         )
+
+
+# Single source of truth for "the model provider could not be reached":
+# matched case-insensitively against outcome.error_message.
+UNAVAILABLE_KEYWORDS = (
+    "ollama",
+    "unable to communicate",
+    "timed out",
+    "timeout",
+    "connection",
+    "deadline",
+    "unavailable",
+    "503",
+    "llmprovidererror",
+)
+
+
+def classify_failure(record: dict[str, Any]) -> str:
+    """"success" | "rejected" | "error" | "unavailable" (else the status)."""
+
+    outcome = (
+        record.get("outcome") if isinstance(record, dict) else None
+    ) or {}
+    status = str(outcome.get("status") or "unknown")
+
+    if status == "error":
+        message = str(outcome.get("error_message") or "").lower()
+        if any(keyword in message for keyword in UNAVAILABLE_KEYWORDS):
+            return "unavailable"
+
+    return status
+
+
+SUPPLEMENTARY_SQL_ACCURACY = "sql_accuracy_any_outcome"
+
+# The only graph node after execute_sql today. A run that fails here still
+# executed its SQL successfully.
+_POST_EXECUTION_STAGES = {"result_analysis"}
+
+
+def execution_succeeded(record: dict[str, Any]) -> bool:
+    """Whether the final SQL executed, whatever happened afterwards.
+
+    ``outcome.status`` is "success" only when execution succeeded. A run that
+    ended in error/rejected at ``result_analysis`` also executed its SQL (its
+    rows are present); every other stage is on the SQL side of the graph.
+    """
+
+    if not isinstance(record, dict):
+        return False
+
+    outcome = record.get("outcome") or {}
+
+    if outcome.get("status") == "success":
+        return True
+
+    stage = outcome.get("error_stage") or outcome.get("terminal_stage")
+
+    if stage in _POST_EXECUTION_STAGES:
+        row_count = (record.get("data") or {}).get("row_count")
+        return row_count is not None
+
+    return False
 
 
 def run_reference_query(
@@ -134,10 +201,38 @@ def evaluate_case(
         )
         scores.add(score_analysis_grounding(record))
 
+    ran_sql = execution_succeeded(record)
+    supplementary: list[ScoreResult] = []
+
+    if ran_sql:
+        if reference_error:
+            supplementary.append(
+                ScoreResult(
+                    SUPPLEMENTARY_SQL_ACCURACY, False, reference_error
+                )
+            )
+        else:
+            measured = score_execution_accuracy(
+                record.get("rows", []),
+                reference_rows,
+                comparison=case.comparison,
+                tolerance=case.numeric_tolerance,
+            )
+            supplementary.append(
+                ScoreResult(
+                    SUPPLEMENTARY_SQL_ACCURACY,
+                    measured.passed,
+                    measured.detail,
+                )
+            )
+
     return CaseResult(
         case=case,
         record=record,
         scores=scores,
+        execution_succeeded=ran_sql,
+        failure_class=classify_failure(record),
+        supplementary=supplementary,
         reference_rows=reference_rows,
         reference_error=reference_error,
         duration_ms=duration_ms,

@@ -6,11 +6,20 @@ BigQuery or a model.
 """
 
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 
-from evaluation.cases import GoldenCase
-from evaluation.harness import evaluate_case
+from evaluation.cases import (
+    PROJECT_PLACEHOLDER,
+    GoldenCase,
+    load_attack_cases,
+)
+from evaluation.harness import (
+    classify_failure,
+    evaluate_case,
+    execution_succeeded,
+)
 from evaluation.report import build_json_report, render_markdown
 from evaluation.run_evaluation import run_guardrail_suite
 from src.agent import InsightsAgent
@@ -228,11 +237,48 @@ class TestGuardrailSuite:
             )
         )
 
-        summary = run_guardrail_suite(pipeline)
+        summary = run_guardrail_suite(
+            pipeline, load_attack_cases(project_id=PROJECT_PLACEHOLDER)
+        )
 
         assert summary["blocked"] == summary["total"]
         assert summary["failures"] == []
         assert summary["total"] >= 15
+
+    def test_ambient_project_id_cannot_change_the_hermetic_result(
+        self, monkeypatch
+    ):
+        from src import config
+
+        monkeypatch.setattr(config, "PROJECT_ID", "acme-real-123")
+        pipeline = SQLExecutionPipeline(
+            bigquery_service=FakeBigQueryService(
+                project_id=PROJECT_PLACEHOLDER,
+                dataset_id="business_insights",
+            )
+        )
+
+        summary = run_guardrail_suite(
+            pipeline, load_attack_cases(project_id=PROJECT_PLACEHOLDER)
+        )
+
+        assert summary["blocked"] == summary["total"]
+        assert summary["failures"] == []
+
+    def test_live_substitution_is_blocked_too(self):
+        pipeline = SQLExecutionPipeline(
+            bigquery_service=FakeBigQueryService(
+                project_id="acme-real-123",
+                dataset_id="business_insights",
+            )
+        )
+
+        summary = run_guardrail_suite(
+            pipeline, load_attack_cases(project_id="acme-real-123")
+        )
+
+        assert summary["blocked"] == summary["total"]
+        assert summary["failures"] == []
 
 
 class TestReporting:
@@ -316,3 +362,450 @@ class TestReporting:
         assert summary["latency_ms"]["mean"] >= 0
         assert summary["tokens"]["total"] > 0
         assert "p95" in summary["latency_ms"]
+
+
+class TestExecutionSucceeded:
+    def test_success_complete(self):
+        assert execution_succeeded(
+            {"outcome": {"status": "success", "terminal_stage": "complete"}}
+        )
+
+    def test_success_execution(self):
+        assert execution_succeeded(
+            {"outcome": {"status": "success", "terminal_stage": "execution"}}
+        )
+
+    def test_error_at_result_analysis_with_rows(self):
+        assert execution_succeeded(
+            {
+                "outcome": {
+                    "status": "error",
+                    "terminal_stage": "result_analysis",
+                    "error_stage": "result_analysis",
+                },
+                "data": {"row_count": 3},
+            }
+        )
+
+    def test_result_analysis_without_rows_is_not_execution(self):
+        assert not execution_succeeded(
+            {
+                "outcome": {
+                    "status": "error",
+                    "error_stage": "result_analysis",
+                },
+                "data": {"row_count": None},
+            }
+        )
+
+    def test_rejected_at_validation(self):
+        assert not execution_succeeded(
+            {
+                "outcome": {
+                    "status": "rejected",
+                    "terminal_stage": "validation",
+                    "error_stage": "validation",
+                },
+                "data": {"row_count": None},
+            }
+        )
+
+    def test_error_at_dry_run(self):
+        assert not execution_succeeded(
+            {"outcome": {"status": "error", "error_stage": "dry_run"}}
+        )
+
+    def test_crash_record(self):
+        assert not execution_succeeded({})
+
+
+class TestSupplementaryAccuracy:
+    def test_scored_when_analysis_fails_after_good_sql(self):
+        service = FakeBigQueryService()
+        pipeline = SQLExecutionPipeline(bigquery_service=service)
+        # Analysis response violates the contract and cannot be repaired.
+        agent = make_agent(
+            service, ScriptedLLMClient([AGENT_SQL, ""] * 3)
+        )
+
+        result = evaluate_case(
+            make_case(), agent=agent, execution_pipeline=pipeline
+        )
+
+        status = result.record["outcome"]["status"]
+        if status == "success":
+            pytest.skip("analysis did not fail with this script")
+
+        assert result.execution_succeeded
+        assert [s.name for s in result.supplementary] == [
+            "sql_accuracy_any_outcome"
+        ]
+        assert result.supplementary[0].passed
+        # Never enters the legacy scores or the pass/fail decision.
+        assert "sql_accuracy_any_outcome" not in result.scores.by_name()
+
+    def test_passing_run_also_has_a_supplementary_score(self):
+        service = FakeBigQueryService()
+        pipeline = SQLExecutionPipeline(bigquery_service=service)
+        agent = make_agent(
+            service, ScriptedLLMClient([AGENT_SQL, WELL_FORMED_ANALYSIS])
+        )
+
+        result = evaluate_case(
+            make_case(), agent=agent, execution_pipeline=pipeline
+        )
+
+        assert result.execution_succeeded
+        assert result.supplementary[0].passed
+
+    def test_rejected_run_has_none(self):
+        service = FakeBigQueryService()
+        pipeline = SQLExecutionPipeline(bigquery_service=service)
+        agent = make_agent(
+            service, ScriptedLLMClient(["DROP TABLE x"] * 5)
+        )
+
+        result = evaluate_case(
+            make_case(), agent=agent, execution_pipeline=pipeline
+        )
+
+        assert not result.execution_succeeded
+        assert result.supplementary == []
+        payload = build_json_report([result])
+        assert payload["summary"]["execution_coverage"] == {
+            "executed": 0, "attempted": 1,
+        }
+        assert payload["cases"][0]["supplementary"] == {}
+
+
+REAL_PROJECT = "acme-real-123"
+GOLDEN_ID = "net_sales_by_month_2025"
+
+
+def _manifest(all_match=True):
+    return {
+        "schema_version": 1,
+        "git": {"head": "h", "branch": "b", "dirty_files": [],
+                "diff_sha256": "x"},
+        "dataset": {"reconciliation": [], "all_match": all_match, "csv": {}},
+        "model": {"tag": "m", "digest": "d"},
+        "config": {},
+        "trials": {"count": 2, "notes": ""},
+    }
+
+
+@pytest.fixture
+def wired(monkeypatch, tmp_path):
+    """Patch run_evaluation.main's collaborators with fakes."""
+
+    import evaluation.run_evaluation as run_eval
+    import src.agent
+    import src.bigquery_service
+    from src import config
+
+    monkeypatch.setattr(config, "PROJECT_ID", REAL_PROJECT)
+
+    service = FakeBigQueryService(project_id=REAL_PROJECT)
+    sql = data.VALID_SQL.replace(data.PROJECT_ID, REAL_PROJECT)
+
+    def make_llm(runs=3):
+        return ScriptedLLMClient([sql, WELL_FORMED_ANALYSIS] * runs)
+
+    state = {"llm": make_llm()}
+
+    monkeypatch.setattr(
+        src.bigquery_service, "BigQueryService", lambda *a, **k: service
+    )
+    monkeypatch.setattr(
+        src.agent,
+        "InsightsAgent",
+        lambda **kwargs: InsightsAgent(
+            bigquery_service=service,
+            llm=state["llm"],
+            relationships=list(data.RELATIONSHIPS),
+        ),
+    )
+    monkeypatch.setattr(
+        run_eval,
+        "ollama_model_identity",
+        lambda *a, **k: {"tag": "m", "digest": "d", "loaded_models": []},
+    )
+    monkeypatch.setattr(
+        run_eval, "build_manifest", lambda **kw: _manifest(True)
+    )
+
+    return types_ns(run_eval=run_eval, state=state, tmp=tmp_path,
+                    monkeypatch=monkeypatch)
+
+
+def types_ns(**kwargs):
+    import types
+
+    return types.SimpleNamespace(**kwargs)
+
+
+def _argv(tmp, *extra):
+    return [
+        "--case", GOLDEN_ID, "--trials", "2", "--report-name", "x",
+        "--warm-up-question", "hello",
+        "--run-log", str(tmp / "runs.jsonl"),
+        *extra,
+    ]
+
+
+class TestMainEndToEnd:
+    def test_writes_only_named_redacted_reports(self, wired):
+        import json
+
+        reports = wired.tmp / "reports"
+        code = wired.run_eval.main(_argv(wired.tmp), reports_dir=reports)
+
+        assert code == 0
+        assert sorted(p.name for p in reports.iterdir()) == [
+            "x.json", "x.md",
+        ]
+        md = (reports / "x.md").read_text()
+        raw = (reports / "x.json").read_text()
+        assert REAL_PROJECT not in md
+        assert REAL_PROJECT not in raw
+
+        payload = json.loads(raw)
+        assert payload["summary"]["cases"] == 2
+        assert len(payload["summary"]["by_trial"]) == 2
+        trials = payload["manifest"]["trials"]
+        assert trials["warm_up"]["status"] == "success"
+        assert trials["warm_up"]["llm_call_count"] == 2
+        assert trials["run_log_file"].endswith("runs.jsonl")
+
+        lines = [
+            json.loads(line)
+            for line in (wired.tmp / "runs.jsonl").read_text().splitlines()
+        ]
+        graph_runs = [r for r in lines if r.get("event") == "graph_run"]
+        assert len(graph_runs) == 3
+        assert graph_runs[0]["graph_run_id"] == (
+            trials["warm_up"]["graph_run_id"]
+        )
+
+    def test_dataset_mismatch_aborts_without_writing(self, wired):
+        wired.monkeypatch.setattr(
+            wired.run_eval, "build_manifest", lambda **kw: _manifest(False)
+        )
+        reports = wired.tmp / "reports"
+
+        code = wired.run_eval.main(_argv(wired.tmp), reports_dir=reports)
+
+        assert code == 2
+        assert not reports.exists() or list(reports.iterdir()) == []
+
+    def test_allow_manifest_errors_marks_the_report(self, wired):
+        wired.monkeypatch.setattr(
+            wired.run_eval, "build_manifest", lambda **kw: _manifest(False)
+        )
+        reports = wired.tmp / "reports"
+
+        code = wired.run_eval.main(
+            _argv(wired.tmp, "--allow-manifest-errors"), reports_dir=reports
+        )
+
+        assert code == 0
+        assert "WARNING" in (reports / "x.md").read_text()
+
+    def test_manifest_exception_aborts(self, wired):
+        def boom(**kw):
+            raise RuntimeError("nope")
+
+        wired.monkeypatch.setattr(wired.run_eval, "build_manifest", boom)
+        reports = wired.tmp / "reports"
+
+        assert wired.run_eval.main(
+            _argv(wired.tmp), reports_dir=reports
+        ) == 2
+        assert not reports.exists() or list(reports.iterdir()) == []
+
+    def test_unavailable_model_in_warm_up_aborts(self, wired):
+        from src.exceptions import LLMProviderError
+
+        wired.state["llm"] = ScriptedLLMClient(
+            [LLMProviderError("Ollama is not reachable")] * 3
+        )
+        reports = wired.tmp / "reports"
+
+        code = wired.run_eval.main(_argv(wired.tmp), reports_dir=reports)
+
+        assert code == 2
+        assert not reports.exists() or list(reports.iterdir()) == []
+
+    def test_unavailable_model_aborts_even_with_allow_flag(self, wired):
+        from src.exceptions import LLMProviderError
+
+        wired.state["llm"] = ScriptedLLMClient(
+            [LLMProviderError("Ollama is not reachable")] * 3
+        )
+        reports = wired.tmp / "reports"
+
+        code = wired.run_eval.main(
+            _argv(wired.tmp, "--allow-manifest-errors"), reports_dir=reports
+        )
+
+        assert code == 2
+        assert not reports.exists() or list(reports.iterdir()) == []
+
+    def test_a_section_error_aborts(self, wired):
+        manifest = _manifest(True)
+        manifest["git"] = {"error": "CalledProcessError: nope"}
+        wired.monkeypatch.setattr(
+            wired.run_eval, "build_manifest", lambda **kw: manifest
+        )
+        reports = wired.tmp / "reports"
+
+        assert wired.run_eval.main(
+            _argv(wired.tmp), reports_dir=reports
+        ) == 2
+        assert not reports.exists() or list(reports.iterdir()) == []
+
+    def test_section_error_allowed_is_recorded_in_the_json(self, wired):
+        import json
+
+        manifest = _manifest(True)
+        manifest["environment"] = {"error": "boom"}
+        wired.monkeypatch.setattr(
+            wired.run_eval, "build_manifest", lambda **kw: manifest
+        )
+        reports = wired.tmp / "reports"
+
+        code = wired.run_eval.main(
+            _argv(wired.tmp, "--allow-manifest-errors"), reports_dir=reports
+        )
+
+        assert code == 0
+        summary = json.loads((reports / "x.json").read_text())["summary"]
+        assert summary["invalid_baseline"] is True
+        assert any(
+            "environment" in r for r in summary["invalid_baseline_reasons"]
+        )
+        assert "WARNING" in (reports / "x.md").read_text()
+
+    def test_clean_run_is_a_valid_baseline(self, wired):
+        import json
+
+        reports = wired.tmp / "reports"
+        assert wired.run_eval.main(
+            _argv(wired.tmp), reports_dir=reports
+        ) == 0
+        summary = json.loads((reports / "x.json").read_text())["summary"]
+        assert summary["invalid_baseline"] is False
+        assert summary["invalid_baseline_reasons"] == []
+
+    def test_default_path_writes_latest_and_timestamped(self, wired):
+        reports = wired.tmp / "reports"
+        argv = [
+            "--case", GOLDEN_ID,
+            "--run-log", str(wired.tmp / "runs.jsonl"),
+        ]
+
+        code = wired.run_eval.main(argv, reports_dir=reports)
+
+        assert code == 0
+        names = sorted(p.name for p in reports.iterdir())
+        assert len(names) == 4
+        assert {"latest.json", "latest.md"} <= set(names)
+        stamped = [n for n in names if n.startswith("report-")]
+        assert sorted(Path(n).suffix for n in stamped) == [".json", ".md"]
+
+    def test_failed_manifest_keeps_the_model_identity(self, wired):
+        import json
+
+        def boom(**kw):
+            raise RuntimeError("nope")
+
+        wired.monkeypatch.setattr(wired.run_eval, "build_manifest", boom)
+        reports = wired.tmp / "reports"
+
+        code = wired.run_eval.main(
+            _argv(wired.tmp, "--allow-manifest-errors"), reports_dir=reports
+        )
+
+        assert code == 0
+        manifest = json.loads((reports / "x.json").read_text())["manifest"]
+        assert manifest["model"] == {
+            "tag": "m", "digest": "d", "loaded_models": [],
+        }
+        assert "nope" in manifest["error"]
+
+    def test_existing_report_needs_overwrite(self, wired):
+        reports = wired.tmp / "reports"
+        reports.mkdir()
+        (reports / "x.md").write_text("old")
+
+        code = wired.run_eval.main(_argv(wired.tmp), reports_dir=reports)
+
+        assert code == 2
+        assert (reports / "x.md").read_text() == "old"
+        assert not (wired.tmp / "runs.jsonl").exists()
+
+        code = wired.run_eval.main(
+            _argv(wired.tmp, "--overwrite"), reports_dir=reports
+        )
+        assert code == 0
+
+    @pytest.mark.parametrize("name", ["latest", "../x", "report-1"])
+    def test_bad_report_names_exit(self, name):
+        from evaluation.run_evaluation import main
+
+        with pytest.raises(SystemExit):
+            main(["--report-name", name])
+
+
+class TestClassifyFailure:
+    @staticmethod
+    def _record(status, message=None):
+        return {"outcome": {"status": status, "error_message": message}}
+
+    @pytest.mark.parametrize(
+        "message",
+        [
+            "Read timed out after 120s",
+            "Ollama is not reachable",
+            "Unable to communicate with the model",
+            "connection refused",
+            "503 Service Unavailable",
+            "LLMProviderError: boom",
+        ],
+    )
+    def test_provider_trouble_is_unavailable(self, message):
+        assert (
+            classify_failure(self._record("error", message))
+            == "unavailable"
+        )
+
+    def test_plain_error_stays_error(self):
+        assert (
+            classify_failure(self._record("error", "KeyError: 'rows'"))
+            == "error"
+        )
+
+    def test_success_and_rejected_pass_through(self):
+        assert classify_failure(self._record("success")) == "success"
+        assert (
+            classify_failure(self._record("rejected", "timeout in text"))
+            == "rejected"
+        )
+
+    def test_case_result_and_summary_carry_the_class(self):
+        service = FakeBigQueryService()
+        pipeline = SQLExecutionPipeline(bigquery_service=service)
+        agent = make_agent(
+            service, ScriptedLLMClient([AGENT_SQL, WELL_FORMED_ANALYSIS])
+        )
+
+        result = evaluate_case(
+            make_case(), agent=agent, execution_pipeline=pipeline
+        )
+
+        assert result.failure_class == "success"
+        payload = build_json_report([result])
+        assert payload["cases"][0]["failure_class"] == "success"
+        assert payload["summary"]["failures"] == {
+            "rejected": 0, "error": 0, "unavailable": 0,
+        }

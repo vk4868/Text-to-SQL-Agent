@@ -8,10 +8,10 @@ evaluation report's guardrail section.
 
 import pytest
 
-from evaluation.cases import load_attack_cases
+from evaluation.cases import PROJECT_PLACEHOLDER, load_attack_cases
 from tests.fakes.bigquery import FakeBigQueryService
 
-ATTACK_CASES = load_attack_cases()
+ATTACK_CASES = load_attack_cases(project_id=PROJECT_PLACEHOLDER)
 
 
 def case_id(case):

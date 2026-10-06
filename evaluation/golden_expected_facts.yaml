@@ -1,0 +1,175 @@
+# Frozen expected facts for the 15 golden cases.
+#
+# Purpose: the answer-level rubric in evaluation/PROTOCOL.md section 4 scores
+# the rendered answers of both the baseline and the gated system against the
+# SAME hand-reviewed facts. These values were derived on 2026-10-06 by running
+# each case's hand-written reference SQL (evaluation/golden_cases.yaml, sha256
+# 32c8e14f81875d9dd3fe38aa555aba04b6c510b1a940a184c26e131b5938da92) through
+# SQLExecutionPipeline against the live dataset and then checked value by
+# value against a Decimal recomputation from the bundled CSVs. They were NOT
+# produced by the production analysis model, gate or verifier.
+#
+# Fields per case:
+#   answerable         false only for the deliberate empty-result case
+#   direct_answer      the figure(s) a correct answer must state; each entry is
+#                      {entity, metric, value, unit}; `value` is the exact
+#                      reference value as text, compared under the precision
+#                      rule in PROTOCOL.md section 4
+#   minimum_coverage   what counts as answering the question at all
+#   not_required       figures a correct answer may add but is not scored down
+#                      for omitting
+#   expected_outcome   only for the empty-result case
+#
+# Units: money = net amounts as stored, currency unconfirmed and not scored;
+# percent = percentage points; fraction = 0..1 share; count = int.
+#
+# Geography labels follow the bundled CSVs (the "current Australian dataset").
+# On 2026-10-06 the live BigQuery tables carried different branch and
+# customer geography labels; this annex is valid only against a dataset whose
+# column-level reconciliation with the CSVs passes.
+
+- case_id: net_sales_by_month_2025
+  answerable: true
+  minimum_coverage: all 12 months of 2025, each with its net sales figure
+  direct_answer:
+    - {entity: "2025-01", metric: total_net_sales, value: "1462.66", unit: money}
+    - {entity: "2025-02", metric: total_net_sales, value: "1189.28", unit: money}
+    - {entity: "2025-03", metric: total_net_sales, value: "2714.11", unit: money}
+    - {entity: "2025-04", metric: total_net_sales, value: "2315.33", unit: money}
+    - {entity: "2025-05", metric: total_net_sales, value: "1936.36", unit: money}
+    - {entity: "2025-06", metric: total_net_sales, value: "1933.90", unit: money}
+    - {entity: "2025-07", metric: total_net_sales, value: "1694.03", unit: money}
+    - {entity: "2025-08", metric: total_net_sales, value: "2057.30", unit: money}
+    - {entity: "2025-09", metric: total_net_sales, value: "1860.04", unit: money}
+    - {entity: "2025-10", metric: total_net_sales, value: "2105.37", unit: money}
+    - {entity: "2025-11", metric: total_net_sales, value: "2574.25", unit: money}
+    - {entity: "2025-12", metric: total_net_sales, value: "2958.02", unit: money}
+  not_required:
+    - {entity: "2025", metric: total_net_sales, value: "24800.65", unit: money}
+
+- case_id: total_net_sales_2025
+  answerable: true
+  minimum_coverage: the single 2025 total
+  direct_answer:
+    - {entity: "2025", metric: total_net_sales, value: "24800.65", unit: money}
+
+- case_id: total_profit_2025
+  answerable: true
+  minimum_coverage: the single 2025 total profit
+  direct_answer:
+    - {entity: "2025", metric: total_profit, value: "13866.10", unit: money}
+
+- case_id: profit_by_category_2025
+  answerable: true
+  minimum_coverage: the top category named; its profit figure is required when any figure is stated
+  direct_answer:
+    - {entity: "Beverages", metric: total_profit, value: "4153.60", unit: money, rank: 1}
+
+- case_id: top_5_products_by_revenue_2025
+  answerable: true
+  minimum_coverage: all five products in rank order with their net revenue
+  direct_answer:
+    - {entity: "Arabica Coffee Beans", metric: total_net_revenue, value: "3327.85", unit: money, rank: 1}
+    - {entity: "A4 Printer Paper", metric: total_net_revenue, value: "1535.87", unit: money, rank: 2}
+    - {entity: "Energy Drink Pack", metric: total_net_revenue, value: "1483.56", unit: money, rank: 3}
+    - {entity: "Weekly Desk Planner", metric: total_net_revenue, value: "955.18", unit: money, rank: 4}
+    - {entity: "Compact Keyboard", metric: total_net_revenue, value: "944.82", unit: money, rank: 5}
+
+- case_id: revenue_by_region_2025
+  answerable: true
+  minimum_coverage: all four regions with their net revenue
+  direct_answer:
+    - {entity: "East", metric: total_net_revenue, value: "7356.42", unit: money}
+    - {entity: "Northeast", metric: total_net_revenue, value: "7187.59", unit: money}
+    - {entity: "Southeast", metric: total_net_revenue, value: "5872.03", unit: money}
+    - {entity: "West", metric: total_net_revenue, value: "4384.61", unit: money}
+  not_required:
+    - {entity: "all regions", metric: total_net_revenue, value: "24800.65", unit: money}
+    - {entity: "East", metric: share_of_total, value: "0.2966", unit: fraction}
+    - {entity: "Northeast", metric: share_of_total, value: "0.2898", unit: fraction}
+    - {entity: "Southeast", metric: share_of_total, value: "0.2368", unit: fraction}
+    - {entity: "West", metric: share_of_total, value: "0.1768", unit: fraction}
+
+- case_id: electronics_november_december_2025
+  answerable: true
+  minimum_coverage: the combined November plus December 2025 Electronics net sales figure
+  direct_answer:
+    - {entity: "Electronics, 2025-11 and 2025-12 combined", metric: total_net_sales, value: "784.91", unit: money}
+
+- case_id: sales_by_membership_status_2025
+  answerable: true
+  minimum_coverage: both membership groups with their net revenue
+  direct_answer:
+    - {entity: "Member", metric: total_net_revenue, value: "20358.86", unit: money}
+    - {entity: "Normal", metric: total_net_revenue, value: "4441.79", unit: money}
+  not_required:
+    - {entity: "Member minus Normal", metric: difference, value: "15917.07", unit: money}
+    - {entity: "Member", metric: share_of_total, value: "0.8209", unit: fraction}
+
+- case_id: transaction_count_2025
+  answerable: true
+  minimum_coverage: the single count of 2025 sales lines (the dataset has no order id; a line count is the only defined transaction count)
+  direct_answer:
+    - {entity: "2025", metric: transaction_count, value: "678", unit: count}
+
+- case_id: average_discount_by_promotion_2025
+  answerable: true
+  minimum_coverage: all four promotion types with their mean line discount; a fraction and its percentage form are the same value
+  direct_answer:
+    - {entity: "Seasonal Promotion", metric: average_discount_pct, value: "0.125", unit: fraction}
+    - {entity: "Member Discount", metric: average_discount_pct, value: "0.083424658", unit: fraction}
+    - {entity: "General Promotion", metric: average_discount_pct, value: "0.05", unit: fraction}
+    - {entity: "None", metric: average_discount_pct, value: "0", unit: fraction}
+
+- case_id: profit_margin_by_category_2025
+  answerable: true
+  minimum_coverage: all six categories with their margin; a fraction and its percentage form are the same value
+  direct_answer:
+    - {entity: "Stationery", metric: profit_margin_pct, value: "59.1783393", unit: percent}
+    - {entity: "Electronics", metric: profit_margin_pct, value: "58.1536133", unit: percent}
+    - {entity: "Household", metric: profit_margin_pct, value: "56.6662128", unit: percent}
+    - {entity: "Fruits", metric: profit_margin_pct, value: "55.6918289", unit: percent}
+    - {entity: "Personal Care", metric: profit_margin_pct, value: "54.2323508", unit: percent}
+    - {entity: "Beverages", metric: profit_margin_pct, value: "53.7581943", unit: percent}
+
+- case_id: sales_by_channel_2025
+  answerable: true
+  minimum_coverage: all three channels with their net revenue
+  direct_answer:
+    - {entity: "In-Store", metric: total_net_revenue, value: "14602.22", unit: money}
+    - {entity: "Online", metric: total_net_revenue, value: "7046.20", unit: money}
+    - {entity: "Click-and-Collect", metric: total_net_revenue, value: "3152.23", unit: money}
+  not_required:
+    - {entity: "all channels", metric: total_net_revenue, value: "24800.65", unit: money}
+    - {entity: "In-Store", metric: share_of_total, value: "0.5888", unit: fraction}
+    - {entity: "Online", metric: share_of_total, value: "0.2841", unit: fraction}
+    - {entity: "Click-and-Collect", metric: share_of_total, value: "0.1271", unit: fraction}
+
+- case_id: quantity_sold_by_category_2025
+  answerable: true
+  minimum_coverage: all six categories with their unit counts
+  direct_answer:
+    - {entity: "Beverages", metric: total_quantity, value: "828", unit: count}
+    - {entity: "Fruits", metric: total_quantity, value: "692", unit: count}
+    - {entity: "Stationery", metric: total_quantity, value: "679", unit: count}
+    - {entity: "Personal Care", metric: total_quantity, value: "547", unit: count}
+    - {entity: "Household", metric: total_quantity, value: "419", unit: count}
+    - {entity: "Electronics", metric: total_quantity, value: "135", unit: count}
+  not_required:
+    - {entity: "all categories", metric: total_quantity, value: "3300", unit: count}
+
+- case_id: best_month_for_profit_2025
+  answerable: true
+  minimum_coverage: the month named; its profit figure is required when any figure is stated
+  direct_answer:
+    - {entity: "2025-12", metric: total_profit, value: "1600.07", unit: money, rank: 1}
+
+- case_id: no_sales_in_1999
+  answerable: false
+  minimum_coverage: none; the correct answer states that no rows exist for 1999
+  direct_answer: []
+  expected_outcome:
+    status: success
+    row_count: 0
+    was_generated_deterministically: true
+    unsafe_if: any sales figure is stated for 1999
