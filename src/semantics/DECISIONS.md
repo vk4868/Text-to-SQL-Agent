@@ -1,0 +1,33 @@
+# Metric registry decisions (Phase 2)
+
+Answers to plan.md "Decisions to resolve during Phase 2 review". Every DECIDED
+item is **proposed for user review**; nothing here is confirmed business policy.
+Registry: `src/semantics/metrics.yaml` (registry_version 1.0.0, schema_version 1).
+
+| # | Question | Status | Decision and rationale |
+|---|---|---|---|
+| 1 | Currency | UNSUPPORTED | `currency: unconfirmed`. Australian branch cities do not prove AUD. No currency symbol or code may be rendered as fact. |
+| 2 | Tax treatment | UNSUPPORTED | `tax_amount` is summed as recorded. No GST or tax rate is inferred from tax_amount / net_revenue. |
+| 3 | Display precision and rounding | DECIDED | Money 2 dp, percent 1 dp, fraction 4 dp, counts and points 0 dp, all `ROUND_HALF_UP` (ties away from zero). HALF_UP matches BigQuery `ROUND` on NUMERIC and the reconciliation code (`evaluation/manifest.py` uses it for cents). The scorer's quantize is a tolerance normaliser, not a display rule. Phase 4 pin test: the `average_listing_price_per_product` example 10.365 must render as 10.37. A fraction may be rendered as a percentage only through a registry-owned x100 rule (as `profit_margin_pct` does), never ad hoc by the renderer. |
+| 4 | Bare "average price" | DECIDED: clarify | `ambiguous_phrases` lists four candidates: `average_listing_price_per_product` (product mean of list_price), `mean_line_unit_price` (unweighted line mean), `quantity_weighted_mean_unit_price` (sum gross / sum quantity), and `average_realised_net_price_per_unit` (sum net_revenue / sum quantity, after discount; hand-calculated 47017.30 / 6148 = 7.6475...). The engine never chooses an undisclosed weighting. `discounted_unit_price` does not allow `mean`, so there is no fifth price average without an example. |
+| 5 | "Average category sales" | DECIDED: two metrics, bare phrase clarifies | `average_group_total_sold_groups` (groups with at least 1 line in scope) and `average_group_total_full_population` (the dimension's full member list; groups with no lines count as 0). The full-population variant is limited to product dimensions in v1 because dim_products is the authoritative member list. Customer dimensions could be added later. A product-attribute filter (category, subcategory, brand) restricts the member list; a sale-attribute filter (date, branch, channel, promotion, customer) does not. |
+| 6 | Do the two populations ever differ in this data? | FACT | For category and subcategory by year (2024, 2025), every member has sales, so both variants are equal (2025 category: 24800.65 / 6). They differ by month. In 2025-01, 22 of 28 subcategories sold: 1462.66 / 22 = 66.4845... vs 1462.66 / 28 = 52.2378.... Both are recorded as examples. |
+| 7 | Nulls | DECIDED (fail closed) | The CSVs contain no empty cells. Policy: any null in an operand population makes the claim unsupported, never silently skipped or zero-filled. |
+| 8 | Zero quantities | DECIDED | Zero-quantity lines are included in sums and line counts and excluded from nothing. None exist in the data. |
+| 9 | Undefined ratios | DECIDED (fail closed) | A zero denominator, an empty population, or a zero percentage-change baseline makes the value undefined, so the claim is unsupported. The value is never reported as 0. |
+| 10 | Negative values / returns | UNSUPPORTED | There is no returns policy, so negative quantities and amounts are unsupported (fail closed). None exist in the data. Negative line *profit* is a valid recorded loss, not a return. |
+| 11 | Listing price scope | DECIDED | `list_price` is product-level. City-specific or historical listing prices are unsupported with this schema. The product mean is a separate metric from any sales-weighted mean. |
+| 12 | Transactions | DECIDED | There is no order id, so "transaction" means a sales line (`transaction_line_count` = COUNT of sale_id). Order count and average order value are unsupported. The phrase "average transaction value" commonly means order/basket value, which is unsupported; it is an `ambiguous_phrases` entry (policy `clarify`, sole candidate `average_net_sales_per_line`), not a synonym. |
+| 13 | Historical attributes | DECIDED | Current customer and product attributes (membership, age group, home city, catalog unit_cost) do not establish values at the sale date. |
+| 14 | Mean of group values | DECIDED | A mean over already-aggregated inputs must declare `over: group` and `grain: group`. `validate_registry` enforces this. Means of group means and of per-line margins are not registered. Ratios are ratios of sums. |
+| 15 | Golden-fact metric names | NOTE | `evaluation/golden_expected_facts.yaml` uses both `total_net_sales` and `total_net_revenue`. The registry has one metric (`total_net_sales`) with `total_net_revenue` as a synonym. Evaluation files were not changed. |
+| 16 | Runtime verifier model/provider | OUT OF SCOPE | This is a configuration decision for a later phase. It is not part of the registry. |
+| 17 | Empty-population policy | PROPOSED | Totals over an empty population are "no data", not 0. Counts over an empty population are a valid 0. The full-population group average zero-fills groups with no lines. |
+| 18 | Known limitations of the Phase 2 validator | NOTE | Units for `multiply` are not inferred. `unit_rule` / `display_rule` on templates (difference, share_of_total, percentage_change) are documentation only and a Phase 4 obligation. `weight`, `numerator` and `denominator` are not cross-checked against the calculation. The registry dataclasses are frozen but hold mutable dicts (`display`, `raw`, `primary_keys`).  Orchestrator mutation check (2026-10-07): a money-over-count mean relabelled as `percent` is NOT caught, because unit inference for `safe_divide` applies only when both operand units are equal; and the `policy: clarify` field on ambiguous phrases is not loaded into the dataclasses, so `resolve_synonym` returns the candidate list without the policy. Both are Phase 3 obligations. |
+| 19 | Derived-column formulas | FACT | `Datasets/DATA_DICTIONARY.md` gives `cost_amount = product unit_cost x quantity`; verified 0 of 1260 mismatches in this snapshot. It gives `tax_amount = net_revenue x branch tax rate`; a branch rate is implied but not inferred (see #2). |
+
+## Validator signature note
+
+`validate_registry(registry, schema_columns, numeric_columns=None)`. CSV headers
+carry no types, so the list of quantitative columns used for the coverage check
+is passed explicitly. The test passes the 13 fields from plan.md.

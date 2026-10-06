@@ -1,0 +1,767 @@
+# Semantic metric registry (Phase 2). Definitions only: no SQL, no Python.
+# Calculations use the closed operation set in src/semantics/registry.py.
+# Operand forms: {metric: id} | {column: table.column} | {constant: "decimal"}
+#                | {parameter: name} (template slot) | nested {op: ..., operands: [...]}
+# Decisions behind these policies: src/semantics/DECISIONS.md
+registry_version: "1.0.0"
+schema_version: 1
+currency: unconfirmed          # Australian cities do not prove AUD; see DECISIONS.md
+
+tables:
+  fact_sales:    {primary_key: sale_id,     grain: line}
+  dim_products:  {primary_key: product_id,  grain: product}
+  dim_customers: {primary_key: customer_id, grain: customer}
+
+joins:
+  - {id: sales_to_customers, from: fact_sales.customer_id, to: dim_customers.customer_id, cardinality: many_to_one}
+  - {id: sales_to_products,  from: fact_sales.product_id,  to: dim_products.product_id,  cardinality: many_to_one}
+
+_shared:
+  line_dims: &line_dims
+    [product_id, product_name, category, subcategory, brand, branch_id, branch_city, branch_state,
+     branch_region, customer_id, customer_home_city, customer_home_state, membership_status,
+     customer_segment, gender, age_group, acquisition_channel, payment_method, sales_channel,
+     promotion_type, sale_date, signup_date, launch_date]
+  product_dims: &product_dims [product_id, product_name, category, subcategory, brand, launch_date]
+  money_display: &money_display {precision: 2, rounding: ROUND_HALF_UP}
+  fraction_display: &fraction_display {precision: 4, rounding: ROUND_HALF_UP}
+  percent_display: &percent_display {precision: 1, rounding: ROUND_HALF_UP}
+  count_display: &count_display {precision: 0, rounding: ROUND_HALF_UP}
+  null_fail_closed: &null_fail_closed "No nulls exist in the dataset; any null in an operand population makes the claim unsupported (fail closed)."
+  zero_included: &zero_included "Zero values are included in sums and counts; nothing is excluded for being zero."
+  zero_ratio: &zero_ratio "A zero denominator makes the ratio undefined; the claim is unsupported, never 0."
+  non_negative: &non_negative "Non-negative values only; negative values / returns are unsupported until a returns policy exists (fail closed)."
+  provenance_csv: &provenance_csv "Datasets/DATA_DICTIONARY.md and CSV headers; meaning per plan.md metric registry scope."
+  additive_line_ops: &additive_line_ops [sum, mean, min, max, share, percentage_change, subtract]
+  ratio_ops: &ratio_ops [identity, subtract, percentage_change]
+
+excluded_columns:
+  - {column: dim_customers.customer_name, reason: "personal name; not a quantity or analysis dimension"}
+
+dimensions:
+  - {id: product_id, label: Product ID, synonyms: [product id], source: dim_products.product_id, kind: id}
+  - {id: product_name, label: Product, synonyms: [product, product name], source: dim_products.product_name, kind: classification}
+  - {id: category, label: Category, synonyms: [category, product category], source: dim_products.category, kind: classification}
+  - {id: subcategory, label: Subcategory, synonyms: [subcategory], source: dim_products.subcategory, kind: classification}
+  - {id: brand, label: Brand, synonyms: [brand], source: dim_products.brand, kind: classification}
+  - {id: branch_id, label: Branch, synonyms: [branch, store], source: fact_sales.branch_id, kind: id}
+  - {id: branch_city, label: Branch city, synonyms: [branch city, store city], source: fact_sales.branch_city, kind: classification, notes: "Branch geography, recorded on the sale line."}
+  - {id: branch_state, label: Branch state, synonyms: [branch state, store state], source: fact_sales.branch_state, kind: classification, notes: "Branch geography."}
+  - {id: branch_region, label: Branch region, synonyms: [region, branch region], source: fact_sales.branch_region, kind: classification, notes: "Branch geography."}
+  - {id: customer_id, label: Customer ID, synonyms: [customer id], source: dim_customers.customer_id, kind: id}
+  - {id: customer_home_city, label: Customer home city, synonyms: [customer city, home city], source: dim_customers.home_city, kind: classification, notes: "Customer geography; distinct from branch geography. Current value, not historical."}
+  - {id: customer_home_state, label: Customer home state, synonyms: [customer state, home state], source: dim_customers.home_state, kind: classification, notes: "Customer geography; current value, not historical."}
+  - {id: membership_status, label: Membership status, synonyms: [membership, member status], source: dim_customers.membership_status, kind: classification, notes: "Current attribute; does not establish status at sale date."}
+  - {id: customer_segment, label: Customer segment, synonyms: [segment, customer segment], source: dim_customers.customer_segment, kind: classification}
+  - {id: gender, label: Gender, synonyms: [gender], source: dim_customers.gender, kind: classification}
+  - {id: age_group, label: Age group, synonyms: [age group, age band], source: dim_customers.age_group, kind: classification, notes: "Current band; not age at sale date."}
+  - {id: acquisition_channel, label: Acquisition channel, synonyms: [acquisition channel], source: dim_customers.acquisition_channel, kind: classification}
+  - {id: payment_method, label: Payment method, synonyms: [payment method, payment type], source: fact_sales.payment_method, kind: classification}
+  - {id: sales_channel, label: Sales channel, synonyms: [sales channel, channel], source: fact_sales.sales_channel, kind: classification}
+  - {id: promotion_type, label: Promotion type, synonyms: [promotion, promotion type], source: fact_sales.promotion_type, kind: classification}
+  - {id: sale_date, label: Sale date, synonyms: [sale date, date, month, year], source: fact_sales.sale_date, kind: date, grains: [day, month, year]}
+  - {id: signup_date, label: Customer signup date, synonyms: [signup date], source: dim_customers.signup_date, kind: date, grains: [day, month, year]}
+  - {id: launch_date, label: Product launch date, synonyms: [launch date], source: dim_products.launch_date, kind: date, grains: [day, month, year]}
+
+metrics:
+  # ---------------- base measures: one per quantitative source column ----------------
+  - id: list_price
+    version: 1
+    label: Product listing price
+    synonyms: [list price, listing price]
+    description: "Advertised product listing price; one value per product. Not a sales-line price."
+    source: {column: dim_products.list_price}
+    data_type: decimal
+    unit: money
+    grain: product
+    allowed_dimensions: *product_dims
+    allowed_operations: [mean, min, max, identity]
+    default_aggregation: null   # product mean vs sales-weighted mean is ambiguous
+    null_policy: *null_fail_closed
+    zero_policy: *zero_included
+    sign_policy: *non_negative
+    display: *money_display
+    provenance: *provenance_csv
+    unsupported_uses: [city-specific listing price, historical listing price at sale date, sales-weighted listing price without explicit request]
+  - id: unit_cost
+    version: 1
+    label: Catalog unit cost
+    synonyms: [unit cost, catalog cost]
+    description: "Current catalog cost per unit for a product. Distinct from recorded line cost (cost_amount) and from historical cost."
+    source: {column: dim_products.unit_cost}
+    data_type: decimal
+    unit: money
+    grain: product
+    allowed_dimensions: *product_dims
+    allowed_operations: [mean, min, max, identity]
+    default_aggregation: null
+    null_policy: *null_fail_closed
+    zero_policy: *zero_included
+    sign_policy: *non_negative
+    display: *money_display
+    provenance: *provenance_csv
+    unsupported_uses: [historical unit cost at sale date, substitute for recorded line cost]
+  - id: quantity
+    version: 1
+    label: Line units
+    synonyms: [quantity, units]
+    description: "Units on a sales line."
+    source: {column: fact_sales.quantity}
+    data_type: integer
+    unit: count
+    grain: line
+    allowed_dimensions: *line_dims
+    allowed_operations: *additive_line_ops
+    default_aggregation: sum
+    null_policy: *null_fail_closed
+    zero_policy: "Zero-quantity lines are included in sums and line counts and excluded from nothing (none exist in the dataset)."
+    sign_policy: *non_negative
+    display: *count_display
+    provenance: *provenance_csv
+    unsupported_uses: [returns or net-of-returns units]
+  - id: unit_price
+    version: 1
+    label: Recorded line unit price
+    synonyms: [unit price]
+    description: "Recorded pre-discount unit price on a sales line (gross_revenue = unit_price * quantity). Not the product listing price."
+    source: {column: fact_sales.unit_price}
+    data_type: decimal
+    unit: money
+    grain: line
+    allowed_dimensions: *line_dims
+    allowed_operations: [mean, weighted_mean, min, max, identity]
+    default_aggregation: null   # line mean vs quantity-weighted mean
+    null_policy: *null_fail_closed
+    zero_policy: *zero_included
+    sign_policy: *non_negative
+    display: *money_display
+    provenance: *provenance_csv
+    unsupported_uses: [sum of unit prices, listing price]
+  - id: discount_pct
+    version: 1
+    label: Line discount fraction
+    synonyms: [discount pct, discount percentage, discount rate on a line]
+    description: "Fractional discount on a line (0.05 = 5%). Line mean is distinct from effective revenue-weighted discount."
+    source: {column: fact_sales.discount_pct}
+    data_type: decimal
+    unit: fraction
+    grain: line
+    allowed_dimensions: *line_dims
+    allowed_operations: [mean, min, max, identity]
+    default_aggregation: null
+    null_policy: *null_fail_closed
+    zero_policy: "Zero means no discount; such lines are included."
+    sign_policy: "Must lie in [0, 1]; values outside are unsupported."
+    display: *fraction_display
+    provenance: *provenance_csv
+    unsupported_uses: [sum of discount fractions]
+  - id: gross_revenue
+    version: 1
+    label: Gross revenue
+    synonyms: [gross revenue, gross sales]
+    description: "unit_price * quantity on a line, before discount. Additive over non-duplicated sales lines."
+    source: {column: fact_sales.gross_revenue}
+    data_type: decimal
+    unit: money
+    grain: line
+    allowed_dimensions: *line_dims
+    allowed_operations: *additive_line_ops
+    default_aggregation: sum
+    null_policy: *null_fail_closed
+    zero_policy: *zero_included
+    sign_policy: *non_negative
+    display: *money_display
+    provenance: *provenance_csv
+    unsupported_uses: [sum after a fan-out join]
+  - id: discount_amount
+    version: 1
+    label: Discount amount
+    synonyms: [discount amount, discount dollars]
+    description: "gross_revenue * discount_pct on a line; additive monetary discount."
+    source: {column: fact_sales.discount_amount}
+    data_type: decimal
+    unit: money
+    grain: line
+    allowed_dimensions: *line_dims
+    allowed_operations: *additive_line_ops
+    default_aggregation: sum
+    null_policy: *null_fail_closed
+    zero_policy: *zero_included
+    sign_policy: *non_negative
+    display: *money_display
+    provenance: *provenance_csv
+    unsupported_uses: []
+  - id: net_revenue
+    version: 1
+    label: Line net revenue
+    synonyms: [net revenue on a line]
+    description: "gross_revenue - discount_amount on a line. The default meaning of sales/revenue (SQL prompt rule 10)."
+    source: {column: fact_sales.net_revenue}
+    data_type: decimal
+    unit: money
+    grain: line
+    allowed_dimensions: *line_dims
+    allowed_operations: *additive_line_ops
+    default_aggregation: sum
+    null_policy: *null_fail_closed
+    zero_policy: *zero_included
+    sign_policy: *non_negative
+    display: *money_display
+    provenance: *provenance_csv
+    unsupported_uses: []
+  - id: tax_amount
+    version: 1
+    label: Recorded tax amount
+    synonyms: [tax, tax amount]
+    description: "Recorded line tax amount. Add recorded values only."
+    source: {column: fact_sales.tax_amount}
+    data_type: decimal
+    unit: money
+    grain: line
+    allowed_dimensions: *line_dims
+    allowed_operations: *additive_line_ops
+    default_aggregation: sum
+    null_policy: *null_fail_closed
+    zero_policy: *zero_included
+    sign_policy: *non_negative
+    display: *money_display
+    provenance: *provenance_csv
+    unsupported_uses: [inferred tax or GST rate, tax jurisdiction claims]
+  - id: total_price
+    version: 1
+    label: Line total including tax
+    synonyms: [total price, amount paid]
+    description: "net_revenue + tax_amount on a line. A line amount, not a unit or listing price."
+    source: {column: fact_sales.total_price}
+    data_type: decimal
+    unit: money
+    grain: line
+    allowed_dimensions: *line_dims
+    allowed_operations: *additive_line_ops
+    default_aggregation: sum
+    null_policy: *null_fail_closed
+    zero_policy: *zero_included
+    sign_policy: *non_negative
+    display: *money_display
+    provenance: *provenance_csv
+    unsupported_uses: [unit price, listing price]
+  - id: cost_amount
+    version: 1
+    label: Recorded line cost
+    synonyms: [cost, cost amount, cost of goods]
+    description: "Recorded cost on a line. Related to but not derived here from catalog unit_cost (catalog cost is current, line cost is recorded)."
+    source: {column: fact_sales.cost_amount}
+    data_type: decimal
+    unit: money
+    grain: line
+    allowed_dimensions: *line_dims
+    allowed_operations: *additive_line_ops
+    default_aggregation: sum
+    null_policy: *null_fail_closed
+    zero_policy: *zero_included
+    sign_policy: *non_negative
+    display: *money_display
+    provenance: *provenance_csv
+    unsupported_uses: [overhead or operating cost]
+  - id: profit_amount
+    version: 1
+    label: Line profit
+    synonyms: [profit amount]
+    description: "net_revenue - cost_amount on a line. Line (gross) profit, not net business profit after overhead."
+    source: {column: fact_sales.profit_amount}
+    data_type: decimal
+    unit: money
+    grain: line
+    allowed_dimensions: *line_dims
+    allowed_operations: *additive_line_ops
+    default_aggregation: sum
+    null_policy: *null_fail_closed
+    zero_policy: *zero_included
+    sign_policy: "Negative line profit is a valid recorded loss; it is not a return."
+    display: *money_display
+    provenance: *provenance_csv
+    unsupported_uses: [net business profit, profit after overhead or tax]
+  - id: reward_points
+    version: 1
+    label: Recorded reward points
+    synonyms: [reward points, loyalty points]
+    description: "Reward points recorded on a line. Earned vs adjusted/redeemed meaning is not defined by the data."
+    source: {column: fact_sales.reward_points}
+    data_type: integer
+    unit: points
+    grain: line
+    allowed_dimensions: *line_dims
+    allowed_operations: *additive_line_ops
+    default_aggregation: sum
+    null_policy: *null_fail_closed
+    zero_policy: *zero_included
+    sign_policy: *non_negative
+    display: *count_display
+    provenance: *provenance_csv
+    unsupported_uses: [points balance, redemptions, monetary value of points, broader loyalty claims]
+
+  # ---------------- derived metrics ----------------
+  - id: discounted_unit_price
+    version: 1
+    label: Discounted unit price
+    synonyms: [discounted unit price, net unit price on a line]
+    description: "unit_price * (1 - discount_pct) on one line."
+    source:
+      calculation: {op: multiply, operands: [{column: fact_sales.unit_price}, {op: subtract, operands: [{constant: "1"}, {column: fact_sales.discount_pct}]}]}
+    data_type: decimal
+    unit: money
+    grain: line
+    allowed_dimensions: *line_dims
+    allowed_operations: [min, max, identity]
+    default_aggregation: null
+    null_policy: *null_fail_closed
+    zero_policy: *zero_included
+    sign_policy: *non_negative
+    display: *money_display
+    provenance: "Formula from DATA_DICTIONARY.md; constant 1 is registry-owned."
+    unsupported_uses: [sum of unit prices]
+  - id: total_net_sales
+    version: 1
+    label: Total net sales
+    synonyms: [net sales, total net sales, sales, revenue, total sales, total revenue, net revenue, total net revenue, total_net_revenue]
+    description: "SUM(net_revenue) over sales lines in scope."
+    source:
+      calculation: {op: sum, over: line, operands: [{column: fact_sales.net_revenue}]}
+    data_type: decimal
+    unit: money
+    grain: dataset
+    allowed_dimensions: *line_dims
+    allowed_operations: [identity, share, percentage_change, subtract]
+    default_aggregation: sum
+    null_policy: *null_fail_closed
+    zero_policy: "An empty population sums to no rows; reported as no sales, not as a measured 0 total."
+    sign_policy: *non_negative
+    display: *money_display
+    provenance: "SQL prompt rule 10: sales/revenue means net_revenue."
+    unsupported_uses: []
+  - id: total_gross_revenue
+    version: 1
+    label: Total gross revenue
+    synonyms: [total gross revenue, gross sales total]
+    description: "SUM(gross_revenue) over sales lines."
+    source:
+      calculation: {op: sum, over: line, operands: [{column: fact_sales.gross_revenue}]}
+    data_type: decimal
+    unit: money
+    grain: dataset
+    allowed_dimensions: *line_dims
+    allowed_operations: [identity, share, percentage_change, subtract]
+    default_aggregation: sum
+    null_policy: *null_fail_closed
+    zero_policy: *zero_included
+    sign_policy: *non_negative
+    display: *money_display
+    provenance: *provenance_csv
+    unsupported_uses: []
+  - id: total_discount_amount
+    version: 1
+    label: Total discount amount
+    synonyms: [total discount, total discounts]
+    description: "SUM(discount_amount) over sales lines."
+    source:
+      calculation: {op: sum, over: line, operands: [{column: fact_sales.discount_amount}]}
+    data_type: decimal
+    unit: money
+    grain: dataset
+    allowed_dimensions: *line_dims
+    allowed_operations: [identity, share, percentage_change, subtract]
+    default_aggregation: sum
+    null_policy: *null_fail_closed
+    zero_policy: *zero_included
+    sign_policy: *non_negative
+    display: *money_display
+    provenance: *provenance_csv
+    unsupported_uses: []
+  - id: total_profit
+    version: 1
+    label: Total profit
+    synonyms: [profit, total profit]
+    description: "SUM(profit_amount) over sales lines; line-level gross profit, not net business profit."
+    source:
+      calculation: {op: sum, over: line, operands: [{column: fact_sales.profit_amount}]}
+    data_type: decimal
+    unit: money
+    grain: dataset
+    allowed_dimensions: *line_dims
+    allowed_operations: [identity, share, percentage_change, subtract]
+    default_aggregation: sum
+    null_policy: *null_fail_closed
+    zero_policy: *zero_included
+    sign_policy: "May be negative if line losses dominate."
+    display: *money_display
+    provenance: "SQL prompt rule 11: profit means profit_amount."
+    unsupported_uses: [net business profit after overhead]
+  - id: total_units
+    version: 1
+    label: Total units sold
+    synonyms: [total units, units sold, total quantity]
+    description: "SUM(quantity) over sales lines."
+    source:
+      calculation: {op: sum, over: line, operands: [{column: fact_sales.quantity}]}
+    data_type: integer
+    unit: count
+    grain: dataset
+    allowed_dimensions: *line_dims
+    allowed_operations: [identity, share, percentage_change, subtract]
+    default_aggregation: sum
+    null_policy: *null_fail_closed
+    zero_policy: *zero_included
+    sign_policy: *non_negative
+    display: *count_display
+    provenance: *provenance_csv
+    unsupported_uses: [net-of-returns units]
+  - id: transaction_line_count
+    version: 1
+    label: Sales line count
+    synonyms: [transactions, number of transactions, transaction count, sales lines, number of sales]
+    description: "COUNT of fact_sales lines (sale_id). There is NO order identifier, so 'transactions' means sales lines, not orders/baskets."
+    source:
+      calculation: {op: count, over: line, operands: [{column: fact_sales.sale_id}]}
+    data_type: integer
+    unit: count
+    grain: dataset
+    allowed_dimensions: *line_dims
+    allowed_operations: [identity, share, percentage_change, subtract]
+    default_aggregation: count
+    null_policy: *null_fail_closed
+    zero_policy: "Zero lines is a valid count of 0."
+    sign_policy: *non_negative
+    display: *count_display
+    provenance: "Schema has no order id; sale_id is the line primary key."
+    unsupported_uses: [order count, basket count, average order value]
+  - id: distinct_customer_count
+    version: 1
+    label: Distinct customers
+    synonyms: [number of customers, customer count, unique customers]
+    description: "COUNT(DISTINCT fact_sales.customer_id) over lines in scope (customers who bought)."
+    source:
+      calculation: {op: distinct_count, over: line, operands: [{column: fact_sales.customer_id}]}
+    data_type: integer
+    unit: count
+    grain: dataset
+    allowed_dimensions: *line_dims
+    allowed_operations: [identity, percentage_change, subtract]
+    default_aggregation: distinct_count
+    null_policy: *null_fail_closed
+    zero_policy: "Zero is a valid count."
+    sign_policy: *non_negative
+    display: *count_display
+    provenance: *provenance_csv
+    unsupported_uses: [summing distinct counts across groups, registered customer base size]
+  - id: distinct_product_count
+    version: 1
+    label: Distinct products sold
+    synonyms: [number of products sold, distinct products, unique products]
+    description: "COUNT(DISTINCT fact_sales.product_id) over lines in scope."
+    source:
+      calculation: {op: distinct_count, over: line, operands: [{column: fact_sales.product_id}]}
+    data_type: integer
+    unit: count
+    grain: dataset
+    allowed_dimensions: *line_dims
+    allowed_operations: [identity, percentage_change, subtract]
+    default_aggregation: distinct_count
+    null_policy: *null_fail_closed
+    zero_policy: "Zero is a valid count."
+    sign_policy: *non_negative
+    display: *count_display
+    provenance: *provenance_csv
+    unsupported_uses: [summing distinct counts across groups, catalog size]
+  - id: profit_margin_pct
+    version: 1
+    label: Profit margin (%)
+    synonyms: [profit margin, margin, margin percent]
+    description: "safe_divide(SUM(profit_amount), SUM(net_revenue)) * 100. The x100 constant is registry-owned."
+    source:
+      calculation: {op: multiply, operands: [{op: safe_divide, operands: [{metric: total_profit}, {metric: total_net_sales}]}, {constant: "100"}]}
+    numerator: total_profit
+    denominator: total_net_sales
+    data_type: decimal
+    unit: percent
+    grain: dataset
+    allowed_dimensions: *line_dims
+    allowed_operations: *ratio_ops
+    default_aggregation: null
+    null_policy: *null_fail_closed
+    zero_policy: *zero_ratio
+    sign_policy: "May be negative."
+    display: *percent_display
+    provenance: "Ratio of sums; never a mean of line margins."
+    unsupported_uses: [mean of per-line or per-group margins]
+  - id: effective_discount_rate
+    version: 1
+    label: Effective discount rate
+    synonyms: [effective discount rate, overall discount rate]
+    description: "SUM(discount_amount) / SUM(gross_revenue); revenue-weighted, distinct from mean_line_discount_pct."
+    source:
+      calculation: {op: safe_divide, operands: [{metric: total_discount_amount}, {metric: total_gross_revenue}]}
+    numerator: total_discount_amount
+    denominator: total_gross_revenue
+    data_type: decimal
+    unit: fraction
+    grain: dataset
+    allowed_dimensions: *line_dims
+    allowed_operations: *ratio_ops
+    default_aggregation: null
+    null_policy: *null_fail_closed
+    zero_policy: *zero_ratio
+    sign_policy: *non_negative
+    display: *fraction_display
+    provenance: *provenance_csv
+    unsupported_uses: []
+  - id: average_listing_price_per_product
+    version: 1
+    label: Average listing price per product
+    synonyms: [average list price, average listing price, mean list price]
+    description: "Mean of dim_products.list_price over products (each product once), not weighted by sales."
+    source:
+      calculation: {op: mean, over: product, operands: [{column: dim_products.list_price}]}
+    data_type: decimal
+    unit: money
+    grain: product
+    allowed_dimensions: *product_dims
+    allowed_operations: [identity, subtract, percentage_change]
+    default_aggregation: mean
+    null_policy: *null_fail_closed
+    zero_policy: "Empty product population: undefined, unsupported."
+    sign_policy: *non_negative
+    display: *money_display
+    provenance: *provenance_csv
+    unsupported_uses: [city-specific listing price, historical listing price, filtering by sale attributes]
+  - id: mean_line_unit_price
+    version: 1
+    label: Mean recorded unit price per line
+    synonyms: [mean line unit price, average unit price per line]
+    description: "Unweighted mean of fact_sales.unit_price over sales lines."
+    source:
+      calculation: {op: mean, over: line, operands: [{column: fact_sales.unit_price}]}
+    data_type: decimal
+    unit: money
+    grain: dataset
+    allowed_dimensions: *line_dims
+    allowed_operations: [identity, subtract, percentage_change]
+    default_aggregation: mean
+    null_policy: *null_fail_closed
+    zero_policy: "Empty population: undefined, unsupported."
+    sign_policy: *non_negative
+    display: *money_display
+    provenance: *provenance_csv
+    unsupported_uses: []
+  - id: quantity_weighted_mean_unit_price
+    version: 1
+    label: Quantity-weighted mean unit price
+    synonyms: [quantity weighted unit price, average selling price per unit before discount]
+    description: "SUM(gross_revenue) / SUM(quantity) = quantity-weighted mean of unit_price (gross_revenue = unit_price * quantity on every line)."
+    source:
+      calculation: {op: safe_divide, operands: [{metric: total_gross_revenue}, {metric: total_units}]}
+    numerator: total_gross_revenue
+    denominator: total_units
+    weight: fact_sales.quantity
+    data_type: decimal
+    unit: money
+    grain: dataset
+    allowed_dimensions: *line_dims
+    allowed_operations: [identity, subtract, percentage_change]
+    default_aggregation: null
+    null_policy: *null_fail_closed
+    zero_policy: *zero_ratio
+    sign_policy: *non_negative
+    display: *money_display
+    provenance: *provenance_csv
+    unsupported_uses: []
+  - id: average_realised_net_price_per_unit
+    version: 1
+    label: Average realised net price per unit
+    synonyms: [average realised price per unit, average net price per unit, realised price per unit]
+    description: "SUM(net_revenue) / SUM(quantity): after-discount revenue per unit sold."
+    source:
+      calculation: {op: safe_divide, operands: [{metric: total_net_sales}, {metric: total_units}]}
+    numerator: total_net_sales
+    denominator: total_units
+    data_type: decimal
+    unit: money
+    grain: dataset
+    allowed_dimensions: *line_dims
+    allowed_operations: [identity, subtract, percentage_change]
+    default_aggregation: null
+    null_policy: *null_fail_closed
+    zero_policy: *zero_ratio
+    sign_policy: *non_negative
+    display: *money_display
+    provenance: *provenance_csv
+    unsupported_uses: []
+  - id: average_net_sales_per_line
+    version: 1
+    label: Average net sales per sales line
+    synonyms: [average net sales per line, average sale value]
+    description: "SUM(net_revenue) / COUNT(lines). A line average, not an order average (no order id)."
+    source:
+      calculation: {op: safe_divide, operands: [{metric: total_net_sales}, {metric: transaction_line_count}]}
+    numerator: total_net_sales
+    denominator: transaction_line_count
+    data_type: decimal
+    unit: money
+    grain: dataset
+    allowed_dimensions: *line_dims
+    allowed_operations: [identity, subtract, percentage_change]
+    default_aggregation: null
+    null_policy: *null_fail_closed
+    zero_policy: *zero_ratio
+    sign_policy: *non_negative
+    display: *money_display
+    provenance: *provenance_csv
+    unsupported_uses: [average order value]
+  - id: mean_line_discount_pct
+    version: 1
+    label: Mean line discount fraction
+    synonyms: [mean line discount, average line discount]
+    description: "Unweighted mean of discount_pct over lines; distinct from effective_discount_rate."
+    source:
+      calculation: {op: mean, over: line, operands: [{column: fact_sales.discount_pct}]}
+    data_type: decimal
+    unit: fraction
+    grain: dataset
+    allowed_dimensions: *line_dims
+    allowed_operations: [identity, subtract, percentage_change]
+    default_aggregation: mean
+    null_policy: *null_fail_closed
+    zero_policy: "Empty population: undefined, unsupported."
+    sign_policy: *non_negative
+    display: *fraction_display
+    provenance: *provenance_csv
+    unsupported_uses: []
+  - id: average_group_total_sold_groups
+    version: 1
+    label: Average net sales per group (groups with sales)
+    synonyms: [average net sales per group with sales]
+    description: "Mean of per-group SUM(net_revenue) over groups of a chosen dimension that have >= 1 line in scope."
+    source:
+      calculation: {op: mean, over: group, group_population: sold_groups, operands: [{metric: total_net_sales}]}
+    data_type: decimal
+    unit: money
+    grain: group
+    allowed_dimensions: *line_dims
+    allowed_operations: [identity, subtract, percentage_change]
+    default_aggregation: null
+    null_policy: *null_fail_closed
+    zero_policy: "No sold groups: undefined, unsupported."
+    sign_policy: *non_negative
+    display: *money_display
+    provenance: "Group-grain mean of an aggregated metric; population declared explicitly."
+    unsupported_uses: [mean of group means without weights]
+  - id: average_group_total_full_population
+    version: 1
+    label: Average net sales per group (full member list)
+    synonyms: [average net sales per group including groups without sales]
+    description: "Mean of per-group SUM(net_revenue) over the dimension's full member list; groups with no lines in scope count as 0. A product-attribute filter (category, subcategory, brand) restricts the member list; a sale-attribute filter (date, branch, channel, promotion, customer) does not."
+    source:
+      calculation: {op: mean, over: group, group_population: full_dimension_members, empty_group_value: "0", operands: [{metric: total_net_sales}]}
+    data_type: decimal
+    unit: money
+    grain: group
+    allowed_dimensions: *product_dims
+    allowed_operations: [identity, subtract, percentage_change]
+    default_aggregation: null
+    null_policy: *null_fail_closed
+    zero_policy: "Groups without lines contribute 0 to the numerator and 1 to the denominator."
+    sign_policy: *non_negative
+    display: *money_display
+    provenance: "Full member list taken from the dimension table (dim_products for product dims)."
+    unsupported_uses: [dimensions without an authoritative member list (fact-only dimensions)]
+  - id: difference
+    version: 1
+    label: Difference
+    synonyms: [difference, change in value]
+    description: "a - b for two values of the same registered metric (template)."
+    source:
+      calculation: {op: subtract, operands: [{parameter: a}, {parameter: b}]}
+    data_type: decimal
+    unit: none
+    unit_rule: same_as_operands
+    grain: dataset
+    allowed_dimensions: *line_dims
+    allowed_operations: [identity]
+    default_aggregation: null
+    null_policy: *null_fail_closed
+    zero_policy: *zero_included
+    sign_policy: "May be negative."
+    display: *money_display
+    display_rule: same_as_operands
+    provenance: "Template; operands must share a unit."
+    unsupported_uses: [difference between metrics of different units]
+  - id: share_of_total
+    version: 1
+    label: Share of total
+    synonyms: [share of total, share, proportion of total]
+    description: "part / whole for an additive metric; whole is the same metric over the parent population."
+    source:
+      calculation: {op: share, operands: [{parameter: part}, {parameter: whole}]}
+    data_type: decimal
+    unit: fraction
+    grain: group
+    allowed_dimensions: *line_dims
+    allowed_operations: [identity]
+    default_aggregation: null
+    null_policy: *null_fail_closed
+    zero_policy: *zero_ratio
+    sign_policy: *non_negative
+    display: *fraction_display
+    provenance: "Template."
+    unsupported_uses: [share of a non-additive metric (ratios, means, distinct counts)]
+  - id: percentage_change
+    version: 1
+    label: Percentage change
+    synonyms: [percentage change, percent change, growth rate]
+    description: "(current - baseline) / baseline * 100; x100 is registry-owned."
+    source:
+      calculation: {op: percentage_change, operands: [{parameter: current}, {parameter: baseline}]}
+    data_type: decimal
+    unit: percent
+    grain: dataset
+    allowed_dimensions: *line_dims
+    allowed_operations: [identity]
+    default_aggregation: null
+    null_policy: *null_fail_closed
+    zero_policy: "Zero baseline: undefined, unsupported."
+    sign_policy: "May be negative."
+    display: *percent_display
+    provenance: "Template."
+    unsupported_uses: [change between different metrics]
+
+ambiguous_phrases:
+  - phrase: average price
+    candidates: [average_listing_price_per_product, mean_line_unit_price, quantity_weighted_mean_unit_price, average_realised_net_price_per_unit]
+    policy: clarify
+  - phrase: average category sales
+    candidates: [average_group_total_sold_groups, average_group_total_full_population]
+    policy: clarify
+  - phrase: average sales
+    candidates: [average_net_sales_per_line, average_group_total_sold_groups, average_group_total_full_population]
+    policy: clarify
+  - phrase: average transaction value
+    candidates: [average_net_sales_per_line]
+    policy: clarify
+  - phrase: average discount
+    candidates: [mean_line_discount_pct, effective_discount_rate]
+    policy: clarify
+
+# Hand-checked values over Datasets/*.csv (asserted in tests/unit/semantics/test_registry.py).
+# Values are exact Decimal quotients (default 28-digit context), not display-rounded.
+examples:
+  - {metric: average_listing_price_per_product, population: "all 40 dim_products rows", filter: none, arithmetic: "414.60 / 40", value: "10.365"}
+  - {metric: mean_line_unit_price, population: "all 1260 fact_sales lines", filter: none, arithmetic: "12307.53 / 1260", value: "9.767880952380952380952380952"}
+  - {metric: quantity_weighted_mean_unit_price, population: "all 1260 fact_sales lines", filter: none, arithmetic: "50113.00 / 6148", value: "8.151106050748210800260247235"}
+  - {metric: mean_line_discount_pct, population: "all 1260 fact_sales lines", filter: none, arithmetic: "79.70 / 1260", value: "0.06325396825396825396825396825"}
+  - {metric: effective_discount_rate, population: "all 1260 fact_sales lines", filter: none, arithmetic: "3095.70 / 50113.00", value: "0.06177438987887374533554167581"}
+  - {metric: average_realised_net_price_per_unit, population: "all 1260 fact_sales lines", filter: none, arithmetic: "47017.30 / 6148", value: "7.647576447625243981782693559"}
+  - {metric: average_net_sales_per_line, population: "all 1260 fact_sales lines", filter: none, arithmetic: "47017.30 / 1260", value: "37.31531746031746031746031746"}
+  - {metric: average_group_total_sold_groups, population: "category groups with >=1 line", filter: "sale_date in 2025", arithmetic: "24800.65 / 6", value: "4133.441666666666666666666667"}
+  - {metric: average_group_total_full_population, population: "all 6 dim_products categories", filter: "sale_date in 2025", arithmetic: "24800.65 / 6", value: "4133.441666666666666666666667"}
+  - {metric: average_group_total_sold_groups, population: "subcategory groups with >=1 line (22)", filter: "sale_date in 2025-01", arithmetic: "1462.66 / 22", value: "66.48454545454545454545454545"}
+  - {metric: average_group_total_full_population, population: "all 28 dim_products subcategories", filter: "sale_date in 2025-01", arithmetic: "1462.66 / 28", value: "52.23785714285714285714285714"}
+  - {metric: profit_margin_pct, population: "fact_sales lines", filter: "sale_date in 2025", arithmetic: "13866.10 / 24800.65 * 100", value: "55.91022815934259787545890934"}
