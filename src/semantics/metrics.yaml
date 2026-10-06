@@ -5,7 +5,7 @@
 # Decisions behind these policies: src/semantics/DECISIONS.md
 registry_version: "1.0.0"
 schema_version: 1
-currency: unconfirmed          # Australian cities do not prove AUD; see DECISIONS.md
+currency: AUD          # confirmed by the user at the Phase 2 review (DECISIONS.md #1)
 
 tables:
   fact_sales:    {primary_key: sale_id,     grain: line}

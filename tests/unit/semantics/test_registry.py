@@ -64,7 +64,7 @@ class TestRealRegistry:
     def test_versions(self, registry: MetricRegistry) -> None:
         assert registry.registry_version == "1.0.0"
         assert registry.schema_version == 1
-        assert registry.currency == "unconfirmed"
+        assert registry.currency == "AUD"  # confirmed by the user at the Phase 2 review
 
     def test_validates_clean_against_csv_headers(self, registry, schema_columns) -> None:
         assert _problems(registry, schema_columns) == []
@@ -89,7 +89,7 @@ class TestRealRegistry:
             table, _, column = ref.partition(".")
             assert column in schema_columns[table]
 
-    def test_money_metrics_have_unconfirmed_currency_and_precision(self, registry) -> None:
+    def test_money_metrics_have_display_precision_and_rounding(self, registry) -> None:
         for metric in registry.metrics:
             if metric.unit == "money":
                 assert metric.display.get("precision") == 2, metric.id
