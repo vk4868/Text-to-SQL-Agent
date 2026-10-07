@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Execution rules and approval gates
+
+Read `plan.md` and `NOTES.md` before feature work. The verified-numerical-answers feature **stopped after Phase 4 by the user's decision on 2026-10-07**. Do not resume Phases 5–7 without explicit approval. Documentation maintenance does not authorise implementation or live evaluation. Distinguish this feature's phases from the original project's historical phases.
+
+- Fable 5.1 orchestrates and integrates; Sonnet handles small prescribed changes and repetitive work; Opus handles reasoning-intensive implementation and independent review. Record actual agent use; do not claim unavailable models or reviews occurred.
+- Follow the phase deliverables, implementation matrix, tests and exit evidence in `plan.md`. Present completion evidence and stop for the user's approval before starting the next phase. Report discrepancies and unresolved gaps; a design review is not runtime validation.
+- The interview target is about two hours, with a three-hour hard stop. Record elapsed work and unfinished next steps; do not silently reset or extend the timebox. Preserve the actual branch/PR history: no squashing or tidying commits.
+- Preserve the invariants below. Database reloads, destructive operations and other mutations require authorisation covering that operation; existing explicit authorisation remains valid. A separately authorised administrative reload must never become a model-accessible write path.
+- Never commit secrets, credentials, `.env` contents or real personal data. Keep raw production rows and logs out of the repository. Only intentionally selected synthetic evaluation evidence belongs in reports; inspect it for secrets, personal data and project-id redaction before committing.
+
 ## Commands
 
 Python 3.11 via `uv`. The system Python is 3.14 and has none of the deps — **always** run through `uv run` or `.venv/bin/python`.
@@ -27,8 +37,10 @@ uv run python -m evaluation.run_evaluation --guardrails-only   # 19 adversarial 
 uv run python -m evaluation.run_evaluation                     # 15 golden cases; live BigQuery + Ollama, ~5 min
 uv run python -m evaluation.run_evaluation --fail-under 0.7    # exit 1 on regression
 uv run python -m evaluation.run_evaluation --case net_sales_by_month_2025 --no-write
-uv run python -m evaluation.evidence                           # export evidence linking reports to run-log executions
-uv run python -m evaluation.dataset_check                      # keyed row-level check of live tables against Datasets/*.csv
+# Requires GCP_PROJECT_ID to be configured for the actual project.
+# Evidence inputs must come from the same evaluation run; replace these example paths.
+uv run python -m evaluation.evidence --runs /tmp/konkrd-runs.jsonl --report /tmp/konkrd-report.json --out /tmp/konkrd-evidence.jsonl
+uv run python -m evaluation.dataset_check --out /tmp/konkrd-dataset-check.json
 
 uv run python scripts/demo.py --guardrails-only   # the model-free demo
 uv run python scripts/report_runs.py --last 20 --failures   # summarise logs/runs.jsonl
@@ -76,13 +88,13 @@ Six stages, each timed, each able to reject early. Validators in `src/sql_valida
 3. `enforce_result_limit` — injects `LIMIT`, reduces one that's too high, **rejects** a parameterised one. Its output becomes `executed_sql`.
 4. `dry_run_query` — real BigQuery validation + byte estimate, no billing. Where hallucinated columns die.
 5. Cost check — estimate vs `MAX_QUERY_BYTES`.
-6. `run_query` — read-only, `maximum_bytes_billed`, `job_timeout_ms` (timeout cancels the job), `max_results`.
+6. `run_query` — read-only, `maximum_bytes_billed`, `job_timeout_ms`, `max_results`. A client-side result timeout requests job cancellation and records `cancel_requested`; this does not prove the remote job finished cancelling.
 
 Stages 5/6 and 3/6 deliberately double up (estimate *and* hard billing cap; injected LIMIT *and* client-side cap).
 
 ### LangGraph is the only orchestrator — `src/graph/`
 
-`src/agent.py::InsightsAgent` is the sole entry point; `src/cli.py` and `main.py` sit on top of it. The imperative `QuestionToSQLPipeline` / `QuestionToInsightsPipeline` were retired in Phase 7 — they duplicated the graph's control flow. They exist only in git history.
+`src/agent.py::InsightsAgent` is the sole entry point; `src/cli.py` and `main.py` sit on top of it. The imperative `QuestionToSQLPipeline` / `QuestionToInsightsPipeline` were retired in the original project's Phase 7 — they duplicated the graph's control flow. They exist only in git history.
 
 `build_insights_graph` (`builder.py`) is the production path:
 
@@ -113,7 +125,7 @@ Four smaller builders (`build_schema_graph`, `build_sql_generation_graph`, `buil
 - **Config resolves at call time**, never as import-time default arguments — otherwise tests cannot redirect the run log or the caps. `src/config.py` calls `load_dotenv()` first, since every setting is a module constant read at import.
 - **No I/O at import.** `src/tools.py` exposes `build_tools()` / `get_default_tools()`; `BigQueryService` takes an injected `client=`. A test walks every `src` module in a subprocess with both clients stubbed to prove it.
 - **Schema is always live** but cached behind `SCHEMA_CACHE_TTL_SECONDS` (default 300) — it costs ~4 API calls per table and is requested again on every repair attempt. `SchemaProvider.fetch_count` exists so tests can assert the cache works.
-- **Prompt rules mirror guardrails.** `prompts/sql_generation.py` has 14 rules; those about fully-qualified names, single read-only statement and no `SELECT *` exist because stages 1–3 will otherwise reject. Changing a guardrail usually means changing the matching prompt rule.
+- **Distinguish prompt guidance from enforcement.** `prompts/sql_generation.py` has 14 rules. Fully-qualified physical table names and a single read-only statement are enforced by validators. Avoiding `SELECT *` is prompt guidance only: the validators do not reject wildcards. Keep prompts aligned with guardrails without claiming every prompt rule is enforced.
 - Business semantics in the prompt: "sales"/"revenue" → `net_revenue`, "profit" → `profit_amount`, filter `sale_date` for date ranges (partition pruning). `Datasets/DATA_DICTIONARY.md` has the column formulas.
 - **Comment every code block.** Every function, dataclass and distinct block inside a function states what it does, the inputs it requires and what it returns, including the rejection reason codes it can produce. `src/analysis_validation.py` is the reference example; keep the practice for every new module.
 
@@ -125,6 +137,8 @@ Deterministic, no LLM judge. `evaluation/cases.py` loads and validates two YAML 
 
 **Phase 1 tooling.** `evaluation/PROTOCOL.md` is the frozen evaluation protocol and `evaluation/golden_expected_facts.yaml` holds the expected facts per golden case. `run_evaluation` also takes `--trials`, `--report-name` (writes a named report and never touches `latest.*`), `--warm-up-question`, `--run-log`, `--notes`, `--overwrite` and `--allow-manifest-errors`. `uv run python -m evaluation.evidence` and `uv run python -m evaluation.dataset_check` export evidence and check the dataset. The committed before report is `evaluation/reports/before_semantic_gate.md` / `.json`, with `evaluation/reports/before_semantic_gate_runs.jsonl` and `evaluation/reports/before_semantic_gate_dataset_check.json`. `latest.*` remains the historical report the README quotes. The project id placeholder is substituted at load and redacted on write.
 
+The evidence exporter requires `--runs`, `--report` and `--out`; the dataset checker requires `--out` (complete examples above). Configure the actual project via `GCP_PROJECT_ID`; a redacted placeholder is not a runnable project. All application, reference and evidence SQL must pass through `SQLExecutionPipeline`. Preserve frozen before artifacts and the historical `latest.*`; use fresh named reports for later runs. `--allow-manifest-errors` does not turn failed reconciliation into a valid baseline. Compare before/after on the frozen data, model and trials, reporting grounding, runtime and SQL accuracy with explicit denominators and unavailable cases. Count blocked/clarified answers separately from successful numerical answers so abstention cannot inflate accuracy.
+
 ### Observability
 
 Two record types in `logs/runs.jsonl`, linked by id:
@@ -135,7 +149,7 @@ Two record types in `logs/runs.jsonl`, linked by id:
 
 ### Checking the prose
 
-`src/analysis_guard.py` is the other half of the untrusted-LLM principle: every figure in the written analysis must be present in the rows, a bounded derivation of them (column aggregate, contiguous subtotal, difference, share of total, fraction-as-percentage, row count), or a number the **question** contained.
+`src/analysis_guard.py` is the legacy diagnostic guard. It checks whether figures in the checked sections occur in the rows, are a bounded derivation of them (column aggregate, contiguous subtotal, difference, share of total, fraction-as-percentage, row count), or are numbers the **question** contained. Failures currently attach warnings; the live application still publishes the analysis. This is not a fail-closed publication gate.
 
 Two rules keep it honest, and both have tests:
 
@@ -155,6 +169,18 @@ Status: built and unit-tested on branch `feature/verified-numerical-answers`; **
 
 Trust rule: the model only proposes. Metric ids, result ids, row refs, completeness and registry versions are engine-owned, and a verifier (Phase 5) can never override a deterministic rejection. Tests live under `tests/unit/semantics/`.
 
+**Standalone flow:** proposed query intent → registry validation and ambiguity handling → bounded SQL compiler → `SQLExecutionPipeline` → engine-owned result binding/manifest → answer-contract parsing → deterministic gate. These components are not yet an integrated application path. The planned continuation is a bounded verifier followed by trusted rendering/publication through the graph; both are unfinished. On resumption, a deterministic rejection must block the whole proposed answer before any user-facing draft appears, and must not be sent to a verifier for an override.
+
+**Required integration contract:** `validate_answer(..., question_metric_ids=...)` requires metric ids from the independently validated query intent. Never derive this argument from the answer model's self-declared metrics. An answerable numerical question requires relevant numerical evidence; number-free prose or unrelated numbers must not count as a pass. Preserve explicit clarification, rejection and empty-result outcomes rather than inventing numbers to satisfy coverage.
+
+**Current bounds and known gaps:**
+
+- The compiler covers 14 of 15 golden question shapes; average discount requires clarification. Group averages, shares, percentage changes and multi-dimension grouping remain unsupported compiler shapes. Gate operations are not a promise that the compiler supports the corresponding question.
+- Complete grouped results require coverage of every row only up to 12 rows. Above that bound, the gate does not establish full group coverage.
+- Subtotal detection relies on recognised labels (`total`, `grand total`, `subtotal`, `all`, `overall`) and null dimension values; it does not recognise arbitrary subtotal wording.
+- Free-text contract fields can contain digits and must not be displayed as verified prose. Trusted rendering and checks over every user-visible numerical channel remain Phase 6 work.
+- Verification establishes consistency with supplied results and approved definitions within these bounds. It does not prove source-data correctness or the right interpretation of an ambiguous question. Standalone unit tests do not prove end-to-end publication safety.
+
 ### Documentation
 
 `tests/unit/test_docs_claims.py` asserts every path and `python -m` command in the docs exists, and that no doc describes a deleted component as current. Docs went stale once; that test is why they should not again.
@@ -163,4 +189,6 @@ Trust rule: the model only proposes. Metric ids, result ids, row refs, completen
 
 ### Current state
 
-Phases 0 and 7–10 complete, each independently verified by an audit that mutation-tested the suite, followed by the Streamlit front end. Evaluation: 11/15 (73%), 19/19 adversarial queries refused, 400+ hermetic tests. Phases 1-4 of the verified-numerical-answers plan are committed on the feature branch (before report 31/45 pooled over three trials; 800+ hermetic tests); Phases 5-7 are not started.
+**Historical project:** original Phases 0 and 7–10 were completed, followed by the Streamlit front end. The historical `latest.*` report records 11/15 overall (73%), 14/15 SQL execution accuracy, 12/15 legacy analysis grounding and 19/19 adversarial queries refused. It predates the Australian-data baseline and must not be presented as that baseline.
+
+**Current feature:** Phases 1–4 are committed on `feature/verified-numerical-answers`; implementation stopped after Phase 4. The current-data before report records 31/45 overall across three trials of 15 questions (9/15, 11/15, 11/15), 42/45 SQL execution accuracy, 33/45 legacy analysis grounding, 19/19 adversarial queries refused, and latency mean 19.2 s / p95 26.5 s. The repository has 800+ hermetic tests. Phases 5–7 are not started; there is no after report or measured end-to-end improvement from the new layer. The live application still uses the warning-only prose guard.
